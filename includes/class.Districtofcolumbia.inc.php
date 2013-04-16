@@ -146,15 +146,16 @@ class Parser
 			 * TODO : Make this smarter.  We can use the PECL Fileinfo package
 			 * instead, but I'd rather not have to require that at this point. -BH
 			 */
-
+			
 			$extension = substr($filename, strrpos($filename, '.')+1);
-
+			
+			
 			switch($extension)
 			{
 				case 'xml' :
 					$this->import_xml($section_data);
 					break;
-
+				
 				case 'json' :
 					$this->import_json($section_data);
 					break;
@@ -178,8 +179,8 @@ class Parser
 		}
 
 	} // end iterate() function
-
-
+	
+	
 	/**
 	 * Convert the XML into an object.
 	 */
@@ -209,7 +210,7 @@ class Parser
 				$section_data = join('', $output);
 			}
 			$this->section = new SimpleXMLElement($section_data);
-
+			
 			/*
 			 * Transfer some data to our object.
 			 */
@@ -229,7 +230,7 @@ class Parser
 	public function import_json($section_data)
 	{
 		$this->section = json_decode($section_data);
-
+		
 		return $this->section;
 	}
 
@@ -266,84 +267,97 @@ class Parser
 		/*
 		 * Iterate through the structural headers.
 		 */
-		foreach ($this->section->structure->unit as $unit)
-		{
-			$level = (string) $unit['level'];
-			$this->code->structure->{$level}->name = (string) $unit;
-			$this->code->structure->{$level}->label = (string) $unit['label'];
-			$this->code->structure->{$level}->identifier = (string) $unit['identifier'];
-			if ( !empty($unit['order_by']) )
-			{
-				$this->code->structure->{$level}->order_by = (string) $unit['order_by'];
+		$this->code->structure = array();
+		
+		$structures = explode(',', STRUCTURE);
+		
+		foreach($structures as $structure) {
+			if($this->section->{$structure}->text) {
+				$struct_obj = new stdClass();
+				$struct_obj->name = $this->section->{$structure}->text;
+				$struct_obj->label = $structure;
+				$struct_obj->identifier = $this->section->{$structure}->identifier;
+				$struct_obj->order_by = $this->section->{$structure}->identifier;
+			
+				$this->code->structure[] = $struct_obj;
+				unset($struct_obj);
 			}
 		}
 
-		/*
-		 * Iterate through the text.
-		 */
-		$i=0;
-		foreach ($this->section->text as $section)
-		{
+		$this->code->section = array();
+		$section_obj = new stdClass();
+		$section_obj->text = $this->section->text;
+		$this->code->section[] = $section_obj;
+		
+		$this->code->catch_line = $this->section->heading->catch_text;
+		$this->code->section_number = $this->section->heading->identifier;
 
-			/*
-			 * If there are no subsections, but just a single block of text, then simply save that.
-			 */
-			if (count($section) === 0)
-			{
-				$this->code->section->$i->text = trim((string) $section);
-				$this->code->text = trim((string) $section);
-				break;
-			}
-
-			/*
-			 * If this law is broken down into subsections, iterate through those.
-			 */
-			foreach ($section as $subsection)
-			{
-
-				$this->code->section->$i->text = trim((string) $subsection);
-				
-				/*
-				 * If this subsection has text, save it. Some subsections will not have text, such
-				 * as those that are purely structural, existing to hold sub-subsections, but
-				 * containing no text themselves.
-				 */
-				if ( !empty( trim((string) $subsection) ) )
-				{
-					$this->code->text .= (string) $subsection['prefix'].' '.trim((string) $subsection)."\r\r";
-				}
-
-				$this->code->section->$i->prefix = (string) $subsection['prefix'];
-				$this->code->section->$i->prefix_hierarchy->{0} = (string) $subsection['prefix'];
-				$this->prefix_hierarchy[] = (string) $subsection['prefix'];
-
-				/*
-				 * If this subsection has a specified type (e.g., "table"), save that.
-				 */
-				if (!empty($subsection['type']))
-				{
-					$this->code->section->$i->type = (string) $subsection['type'];
-				}
-				$this->code->section->$i->prefix = (string) $subsection['prefix'];
-
-				$i++;
-
-				/*
-				 * Recurse through any subsections.
-				 */
-				if (count($subsection) > 0)
-				{
-					$this->recurse($subsection, $i);
-					/* Pass back the incrementer. */
-					$i = $this->i;
-				}
-
-				/*
-				 * Having come to the end of the loop, reset the prefix hierarchy.
-				 */
-				$this->prefix_hierarchy = array();
-			}
-		}
+// 		/*
+// 		 * Iterate through the text.
+// 		 */
+// 		$i=0;
+// 		foreach ($this->section->text as $section)
+// 		{
+// 
+// 			/*
+// 			 * If there are no subsections, but just a single block of text, then simply save that.
+// 			 */
+// 			if (count($section) === 0)
+// 			{
+// 				$this->code->section->$i->text = trim((string) $section);
+// 				$this->code->text = trim((string) $section);
+// 				break;
+// 			}
+// 
+// 			/*
+// 			 * If this law is broken down into subsections, iterate through those.
+// 			 */
+// 			foreach ($section as $subsection)
+// 			{
+// 
+// 				$this->code->section->$i->text = trim((string) $subsection);
+// 				
+// 				/*
+// 				 * If this subsection has text, save it. Some subsections will not have text, such
+// 				 * as those that are purely structural, existing to hold sub-subsections, but
+// 				 * containing no text themselves.
+// 				 */
+// 				if ( !empty( trim((string) $subsection) ) )
+// 				{
+// 					$this->code->text .= (string) $subsection['prefix'].' '.trim((string) $subsection)."\r\r";
+// 				}
+// 
+// 				$this->code->section->$i->prefix = (string) $subsection['prefix'];
+// 				$this->code->section->$i->prefix_hierarchy->{0} = (string) $subsection['prefix'];
+// 				$this->prefix_hierarchy[] = (string) $subsection['prefix'];
+// 
+// 				/*
+// 				 * If this subsection has a specified type (e.g., "table"), save that.
+// 				 */
+// 				if (!empty($subsection['type']))
+// 				{
+// 					$this->code->section->$i->type = (string) $subsection['type'];
+// 				}
+// 				$this->code->section->$i->prefix = (string) $subsection['prefix'];
+// 
+// 				$i++;
+// 
+// 				/*
+// 				 * Recurse through any subsections.
+// 				 */
+// 				if (count($subsection) > 0)
+// 				{
+// 					$this->recurse($subsection, $i);
+// 					/* Pass back the incrementer. */
+// 					$i = $this->i;
+// 				}
+// 
+// 				/*
+// 				 * Having come to the end of the loop, reset the prefix hierarchy.
+// 				 */
+// 				$this->prefix_hierarchy = array();
+// 			}
+// 		}
 
 		return TRUE;
 	}
@@ -426,15 +440,12 @@ class Parser
 
 		foreach ($this->code->structure as $struct)
 		{
-			$structure->identifier = $struct->identifier;
-			$structure->name = $struct->name;
-			$structure->label = $struct->label;
 			/* If we've gone through this loop already, then we have a parent ID. */
 			if (isset($this->code->structure_id))
 			{
-				$structure->parent_id = $this->code->structure_id;
+				$struct->parent_id = $this->code->structure_id;
 			}
-			$this->code->structure_id = $structure->create_structure();
+			$this->code->structure_id = $structure->create_structure($struct);
 		}
 
 		// When that loop is finished, because structural units are ordered from most general to
@@ -664,10 +675,10 @@ class Parser
 	 * When provided with a structural identifier, verifies whether that structural unit exists.
 	 * Returns the structural database ID if it exists; otherwise, returns false.
 	 */
-	function structure_exists()
+	function structure_exists($struct)
 	{
 
-		if (!isset($this->identifier))
+		if (!isset($struct->identifier))
 		{
 			return FALSE;
 		}
@@ -675,13 +686,13 @@ class Parser
 		// Assemble the query.
 		$sql = 'SELECT id
 				FROM structure
-				WHERE identifier="'.$this->identifier.'"';
+				WHERE identifier="'.$struct->identifier.'"';
 				
 		// If a parent ID is present (that is, if this structural unit isn't a top-level unit), then
 		// include that in our query.
-		if ( !empty($this->parent_id) )
+		if ( !empty($struct->parent_id) )
 		{
-			$sql .= ' AND parent_id='.$this->parent_id;
+			$sql .= ' AND parent_id='.$struct->parent_id;
 		}
 		else
 		{
@@ -708,7 +719,7 @@ class Parser
 	 * provided with a $parent_id, which is the ID of the parent structural unit. Most structural
 	 * units will have a name, but not all.
 	 */
-	function create_structure()
+	function create_structure($struct)
 	{
 
 		// Sometimes the code contains references to no-longer-existent chapters and even whole
@@ -723,9 +734,9 @@ class Parser
 		// will valuate faster than strlen(), and because these two strings will almost never be
 		// empty.
 		if (
-				( empty($this->identifier) && (strlen($this->identifier) === 0) )
+				( empty($struct->identifier) && (strlen($struct->identifier) === 0) )
 				||
-				( empty($this->label) )
+				( empty($struct->label) )
 			)
 		{
 			return FALSE;
@@ -734,7 +745,7 @@ class Parser
 		/*
 		 * Begin by seeing if this structural unit already exists. If it does, return its ID.
 		 */
-		$structure_id = Parser::structure_exists();
+		$structure_id = Parser::structure_exists($struct);
 		if ($structure_id !== FALSE)
 		{
 			return $structure_id;
@@ -748,15 +759,19 @@ class Parser
 		 * every time, since the former approach will require many less queries than the latter.
 		 */
 		$sql = 'INSERT INTO structure
-				SET identifier="'.$this->db->escape($this->identifier).'"';
-		if (!empty($this->name))
+				SET identifier="'.$this->db->escape($struct->identifier).'"';
+		if (!empty($struct->name))
 		{
-			$sql .= ', name="'.$this->db->escape($this->name).'"';
+			$sql .= ', name="'.$this->db->escape($struct->name).'"';
 		}
-		$sql .= ', label="'.$this->db->escape($this->label).'", date_created=now()';
-		if (isset($this->parent_id))
+		$sql .= ', label="'.$this->db->escape($struct->label).'", date_created=now()';
+		if (isset($struct->parent_id))
 		{
-			$sql .= ', parent_id='.$this->parent_id;
+			$sql .= ', parent_id='.$struct->parent_id;
+		}
+		if (isset($struct->order_by))
+		{
+			$sql .= ', order_by='.$struct->order_by;
 		}
 
 		// Execute the query.
@@ -781,7 +796,7 @@ class Parser
 	{
 
 		// We require a beginning structure ID and the label of the structural unit that's sought.
-		if ( !isset($this->structure_id) || !isset($this->label) )
+		if ( !$this->structure_id || !isset($this->label) )
 		{
 			return FALSE;
 		}

@@ -77,7 +77,7 @@ class Structure
 			}
 			$i++;
 		}
-		
+
 		$result =& $db->query($sql);
 
 		// If the query fails, or if no results are found, return false -- we can't make a match.
@@ -311,19 +311,19 @@ class Structure
 		}
 		
 		// Order these by the order_by column, which may or may not be populated.
-		$sql .= ' ORDER BY structure.order_by ASC, ';
+		$sql .= ' ORDER BY structure.order_by ASC';
 		
 		// In case the order_by column is not populated, we go on to sort by the structure
 		// identifer, by either Roman numerals or Arabic (traditional) numerals.
-		if (isset($this->sort) && $this->sort == 'roman')
-		{
-			$sql .= 'fromRoman(structure.identifier) ASC';
-		}
-		else
-		{
-			$sql .= 'structure.identifier+0, ABS(SUBSTRING_INDEX(structure.identifier, ".", 1)) ASC,
-				ABS(SUBSTRING_INDEX(structure.identifier, ".", -1)) ASC';
-		}
+// 		if (isset($this->sort) && $this->sort == 'roman')
+// 		{
+// 			$sql .= ', fromRoman(structure.identifier) ASC';
+// 		}
+// 		else
+// 		{
+// 			$sql .= ', structure.identifier+0, ABS(SUBSTRING_INDEX(structure.identifier, ".", 1)) ASC,
+// 				ABS(SUBSTRING_INDEX(structure.identifier, ".", -1)) ASC';
+// 		}
 
 		// Execute the query.
 		$result =& $db->query($sql);

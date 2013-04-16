@@ -126,10 +126,10 @@ class ParserController
 			array(
 				/*
 				 * Tell the parser what the working directory
-				 * should be for the XML files.
+				 * should be for the data files.
 				 */
 
-				'directory' => WEB_ROOT . '/admin/xml/',
+				'directory' => DATA_DIR,
 
 				/*
 				 * Set the database
@@ -142,7 +142,7 @@ class ParserController
 		/*
 		 * Iterate through the files.
 		 */
-		$this->logger->message('Parsing XML', 3);
+		$this->logger->message('Parsing Import Data', 3);
 
 		while ($section = $parser->iterate())
 		{

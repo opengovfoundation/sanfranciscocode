@@ -23,7 +23,7 @@ define('BASE_PATH', dirname(dirname(__FILE__)));
 /*
  * Define the path to the includes library.
  */
-define('INCLUDE_PATH', BASE_PATH . '/includes');
+define('INCLUDE_PATH', BASE_PATH . DIRECTORY_SEPARATOR . 'includes');
 
 /*
  * Append "/includes/" to the include path.
@@ -33,12 +33,17 @@ set_include_path(get_include_path().PATH_SEPARATOR.INCLUDE_PATH);
 /*
  * Define web root.
  */
-define('WEB_ROOT', BASE_PATH . '/htdocs');
+define('WEB_ROOT', BASE_PATH . DIRECTORY_SEPARATOR . 'htdocs');
+
+/*
+ * Define data dir
+ */
+define('DATA_DIR', join(DIRECTORY_SEPARATOR, array(WEB_ROOT, 'admin', 'json')));
 
 /*
  * The file in the /includes/ directory that contains functions custom to this installation.
  */
-//define('CUSTOM_FUNCTIONS', 'class.State-sample.inc.php');
+define('CUSTOM_FUNCTIONS', 'class.Districtofcolumbia.inc.php');
 
 /*
  * Which template to use.
@@ -72,7 +77,7 @@ define('EDITION_YEAR', 2012);
  * Does this state's code include laws that have been repealed formally, and that are marked as
  * such?
  */
-define('INCLUDES_REPEALED', TRUE);
+define('INCLUDES_REPEALED', FALSE);
 
 /*
  * The DSN to connect to MySQL.
@@ -93,7 +98,7 @@ define('GLOBAL_DEFINITIONS', '');
  * Create a list of the hiearchy of the code, from the top container to the name of an individual
  * law.
  */
-define('STRUCTURE', 'title,chapter,section');
+define('STRUCTURE', 'division,title,chapter,subchapter,part');	
 
 /*
  * Define the PCRE that identifies section references. It is best to do so without using the section
