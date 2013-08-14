@@ -1,3 +1,6 @@
+#Turn off PHP Errors
+php_flag display_errors off
+
 # Specify our error pages.
 ErrorDocument 404 /404.php
 
@@ -7,13 +10,15 @@ RewriteBase /
 ### SAMPLE REWRITERULES ###
 
 # Requests for a specific section.
-RewriteRule ^([0-9A-Za-z\.]{1,4})-([0-9\.:]{1,10})/$ /law.php?section_number=$1-$2 [QSA]
+RewriteRule ^(\w+\.\w+\-?\d*)/$ /law.php?section_number=$1 [QSA]
+RewriteRule ^(\w+\.\d+\.\d+)/$ /law.php?section_number=$1 [QSA]
+RewriteRule ^(\w+\-\d+)/$ /law.php?section_number=$1 [QSA]
 
 # Requests for a specific chapter.
-RewriteRule ^(([0-9a-zA-Z]{1,8}/)+)$ /structure.php [QSA]
+#RewriteRule ^(([0-9a-zA-Z]{1,8}/)+)$ /structure.php [QSA]
 
 # Requests for a specific title.
-RewriteRule ^([0-9A-Za-z\.]{1,4})/$ /structure.php?title_number=$1 [QSA]
+RewriteRule ^([0-9A-Za-z]{1,4})/$ /structure.php?title_number=$1 [QSA]
 
 # Requests for the about page.
 RewriteRule ^about/$ /about.php [QSA]
