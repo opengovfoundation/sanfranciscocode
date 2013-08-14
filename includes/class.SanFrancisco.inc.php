@@ -234,7 +234,6 @@ class Parser
 		return $this->section;
 	}
 
-
 	/**
 	 * Accept the raw content of a section of code and normalize it.
 	 */
@@ -269,28 +268,28 @@ class Parser
 		 */
 		$this->code->structure = array();
 		
-		//$structures = explode(',', STRUCTURE);
+		$structures = explode(',', STRUCTURE);
+				
+		foreach($structures as $structure) {
+			if($this->section->{$structure}->text) {
+				$struct_obj = new stdClass();
+				$struct_obj->name = $this->section->{$structure}->text;
+				$struct_obj->label = $structure;
+				$struct_obj->identifier = $this->section->{$structure}->identifier;
+				$struct_obj->order_by = $this->section->{$structure}->identifier;
+							
+				$this->code->structure[] = $struct_obj;
+				unset($struct_obj);
+			}
+		}
 		
-		// foreach($structures as $structure) {
-		// 			if($this->section->{$structure}->text) {
-		// 				$struct_obj = new stdClass();
-		// 				$struct_obj->name = $this->section->{$structure}->text;
-		// 				$struct_obj->label = $structure;
-		// 				$struct_obj->identifier = $this->section->{$structure}->identifier;
-		// 				$struct_obj->order_by = $this->section->{$structure}->identifier;
-		// 			
-		// 				$this->code->structure[] = $struct_obj;
-		// 				unset($struct_obj);
-		// 			}
-		// 		}
-		
-		$struct_obj = new stdClass();
-		$struct_obj->name = "Chapter " . $this->section->heading->title;
-		$struct_obj->label = "Chapter";
-		$struct_obj->identifier = $this->section->heading->title;
-		$struct_obj->order_by = $this->section->heading->title;
-
-		$this->code->structure[] = $struct_obj;
+		// $struct_obj = new stdClass();
+		// 		$struct_obj->name = "Chapter " . $this->section->heading->title;
+		// 		$struct_obj->label = "Chapter";
+		// 		$struct_obj->identifier = $this->section->heading->title;
+		// 		$struct_obj->order_by = $this->section->heading->title;
+		// 
+		// 		$this->code->structure[] = $struct_obj;
 		
 		$this->code->section = array();
 		$section_obj = new stdClass();
