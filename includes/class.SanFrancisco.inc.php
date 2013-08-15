@@ -239,9 +239,22 @@ class Parser
 	 * 		The order_by element is base on the following full-structure assumption:
 	 */
 	public function getOrderBy($string){
-		$pos = strpos($string, '.');
-		$order_by = substr($string, $pos + 1);
-		$order_by = str_pad($order_by, 3, '0', STR_PAD_LEFT);
+		$start = strpos($string, '.') + 1;
+		$stop = strpos($string, '-');
+		
+		if($stop == null){
+			$length = 3;
+		}else{
+			$length = $stop - $start;
+		}
+		
+		$order_by = substr($string, $start, $length);
+		
+		if('0' == substr($order_by, 0, 1)){
+			$order_by = '000';
+		}else{
+			$order_by = str_pad($order_by, 3, '0', STR_PAD_LEFT);
+		}
 		
 		return $order_by;
 	}
