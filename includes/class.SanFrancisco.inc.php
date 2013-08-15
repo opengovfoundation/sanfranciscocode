@@ -233,6 +233,18 @@ class Parser
 		
 		return $this->section;
 	}
+	
+	/**
+	 * 	Calculate order_by element for each law
+	 * 		The order_by element is base on the following full-structure assumption:
+	 */
+	public function getOrderBy($string){
+		$pos = strpos($string, '.');
+		$order_by = substr($string, $pos + 1);
+		$order_by = str_pad($order_by, 3, '0', STR_PAD_LEFT);
+		
+		return $order_by;
+	}
 
 	/**
 	 * Accept the raw content of a section of code and normalize it.
@@ -298,6 +310,7 @@ class Parser
 		
 		$this->code->catch_line = $this->section->heading->catch_text;
 		$this->code->section_number = $this->section->heading->identifier;
+		$this->code->order_by = $this->getOrderBy($this->section->heading->identifier);
 
 // 		/*
 // 		 * Iterate through the text.
