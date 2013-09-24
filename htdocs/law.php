@@ -8,7 +8,7 @@
  * @author		Waldo Jaquith <waldo at jaquith.org>
  * @copyright	2010-2013 Waldo Jaquith
  * @license		http://www.gnu.org/licenses/gpl.html GPL 3
- * @version		0.6
+ * @version		0.7
  * @link		http://www.statedecoded.com/
  * @since		0.1
 */
@@ -53,24 +53,11 @@ if (isset($_GET['plain_text']))
 	 * Instruct the browser that this is plain text.
 	 */
 	header("Content-Type: text/plain");
-	
-	/*
-	 * Provide a document header.
-	 */
-	echo str_repeat(' ', (round(((81 - strlen(LAWS_NAME)) / 2))))
-		.strtoupper(LAWS_NAME)."\n\n";
-	echo wordwrap(strtoupper($law->catch_line).' ('.SECTION_SYMBOL.' '.$law->section_number.')'
-		."\n\n", 80, "\n", true);
 		
 	/*
-	 * Send the text itself, which is already formatted properly.
+	 * Send the text, which is already formatted properly.
 	 */
 	echo $law->plain_text;
-	
-	/*
-	 * Include the history.
-	 */
-	echo wordwrap('HISTORY: '.$law->history, 80, "\n", true);
 	
 	/*
 	 * End processing and exit.
@@ -86,6 +73,13 @@ $template = new Page;
 /*
  * Make some section information available globally to JavaScript.
  */
+$section_number =  str_replace('_', '-', $law->section_number);
+$pos = strpos( $law->section_number, "_" );
+if( $pos )  {
+    $section_number = substr( $law->section_number, $pos + 1 );
+}
+
+
 $template->field->javascript = "var section_number = '".$law->section_number."';";
 $template->field->javascript .= "var section_id = '".$law->section_id."';";
 $template->field->javascript .= "var api_key = '".API_KEY."';";
@@ -101,12 +95,12 @@ $template->field->javascript_files = '
 /*
  * Define the browser title.
  */
-$template->field->browser_title = $law->catch_line.' ('.SECTION_SYMBOL.' '.$law->section_number.')—'.SITE_TITLE;
+$template->field->browser_title = $law->catch_line.' ('.SECTION_SYMBOL.' '.$section_number.')—'.SITE_TITLE;
 
 /*
  * Define the page title.
  */
-$template->field->page_title = SECTION_SYMBOL.'&nbsp;'.$law->section_number.' '.$law->catch_line;
+$template->field->page_title = SECTION_SYMBOL.'&nbsp;'.$section_number.' '.$law->catch_line;
 
 /*
  * If we have Dublin Core metadata, then display it.
@@ -129,7 +123,7 @@ foreach (array_reverse((array) $law->ancestry) as $ancestor)
 	$template->field->breadcrumbs .= '<a href="'.$ancestor->url.'">'.$ancestor->identifier.' '
 		.$ancestor->name.'</a> → ';
 }
-$template->field->breadcrumbs .= '<a href="/'.$law->section_number.'/">§&nbsp;'.$law->section_number
+$template->field->breadcrumbs .= '<a href="/'.$law->section_number.'/">§&nbsp;'.$section_number
 	.' '.$law->catch_line.'</a>';
 
 /*
@@ -183,6 +177,11 @@ if (isset($law->history_text))
  * section of the code.
  */
 $body .= '</article>';
+
+/*
+ * Establish the $sidebar variable, so that we can append to it in conditionals.
+ */
+$sidebar = '';
 
 /*
  * Only show the history if the law hasn't been repealed. (If it has been, then the history text
@@ -255,7 +254,7 @@ EOD;
 /*
  * If this section has been cited in any court decisions, list them.
  */
-if ($law->court_decisions != FALSE)
+if ( isset($law->court_decisions) && ($law->court_decisions != FALSE) )
 {
 	$sidebar .= '<section id="court-decisions">
 				<h1>Court Decisions</h1>
@@ -270,6 +269,9 @@ if ($law->court_decisions != FALSE)
 			</section>';
 }
 
+/*
+ * If we have a list of cross-references, list them.
+ */
 if ($law->references !== FALSE)
 {
 
@@ -280,12 +282,15 @@ if ($law->references !== FALSE)
 	foreach ($law->references as $reference)
 	{
 		$sidebar .= '<li>'.SECTION_SYMBOL.'&nbsp;<a href="'.$reference->url.'" class="law">'
-			.$reference->section_number.'</a> '.$reference->catch_line.'</li>';
+			.$section_number.'</a> '.$reference->catch_line.'</li>';
 	}
 	$sidebar .= '</ul>
 			</section>';
 }
 
+/*
+ * If we have a list of related laws, list them.
+ */
 if (isset($law->related) && (count((array) $law->related) > 0))
 {
 	$sidebar .= '			  
@@ -294,15 +299,22 @@ if (isset($law->related) && (count((array) $law->related) > 0))
 				<ul id="related">';
 	foreach ($law->related as $related)
 	{
+                $pos = strpos( $related->section_number, "_" );
+                if( $pos )  {
+                    $related_section_number = substr( $law->section_number, $pos + 1 );
+                }
 		$sidebar .= '<li>'.SECTION_SYMBOL.'&nbsp;<a href="'.$related->url.'">'
-			.$related->section_number.'</a> '.$related->catch_line.'</li>';
+			.$related_section_number.'</a> '.$related->catch_line.'</li>';
 	}
 	$sidebar .= '
 				</ul>
 			</section>';
 }
 
-if (is_object($law->citation))
+/*
+ *	If we have citation data and it's formatted properly, display it.
+ */
+if ( isset($law->citation) && is_object($law->citation) )
 {
 	
 	$sidebar .= '<section id="cite-as">
@@ -324,7 +336,7 @@ $sidebar .= '<section id="elsewhere">
 				accuracy';
 if (isset($law->official_url))
 {
-	$sidebar .= '—<a href="'.$law->official_url.'">read '.SECTION_SYMBOL.'&nbsp;'.$law->section_number.' ';
+	$sidebar .= '—<a href="'.$law->official_url.'">read '.SECTION_SYMBOL.'&nbsp;'.$section_number.' ';
 }
 $sidebar .= ' on the official '.LAWS_NAME.' website</a>.
 			</section>';

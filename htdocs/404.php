@@ -11,11 +11,13 @@
  * @author		Waldo Jaquith <waldo at jaquith.org>
  * @copyright	2010-2013 Waldo Jaquith
  * @license		http://www.gnu.org/licenses/gpl.html GPL 3
- * @version		0.6
+ * @version		0.7
  * @link		http://www.statedecoded.com/
  * @since		0.1
  *
  */
+
+require $_SERVER['DOCUMENT_ROOT'].'/../includes/page-head.inc.php';
 
 /*
  * Fire up our templating engine.
@@ -52,12 +54,6 @@ solutions to the problem:</p>
  */
 $template->field->body = $body;
 unset($body);
-
-/*
- * Put the shorthand $sidebar variable into its proper place.
- */
-$template->field->sidebar = $sidebar;
-unset($sidebar);
 
 /* 
  * Parse the template, which is a shortcut for a few steps that culminate in sending the content

@@ -6,11 +6,14 @@ header('Content-type: application/json');
 # Include the PHP declarations that drive this page.
 require $_SERVER['DOCUMENT_ROOT'].'/../includes/page-head.inc.php';
 
-if (!isset($_GET['section']) || empty($_GET['section']))
-{
-	json_error('Code section not provided.');
-	die();
-}
+$section = ltrim( $_SERVER["PATH_INFO"], "/" );
+
+
+/* if (!isset($_GET['section']) || empty($_GET['section'])) */
+/* { */
+/* 	json_error('Code section not provided.'); */
+/* 	die(); */
+/* } */
 
 $api = new API;
 $api->list_all_keys();
@@ -51,7 +54,7 @@ if (isset($_REQUEST['callback']))
 }
 
 # Localize the section identifier, filtering out unsafe characters.
-$section = filter_input(INPUT_GET, 'section', FILTER_SANITIZE_STRING);
+    //$section = filter_input(INPUT_GET, 'section', FILTER_SANITIZE_STRING);
 
 # If there's a trailing slash, remove it.
 if (substr($section, -1) == '/')

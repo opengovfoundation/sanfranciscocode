@@ -141,8 +141,6 @@ class Parser
 			 */
 			$xml = file_get_contents($filename);
 			
-                        error_log( "Parser.iterate Processing file: ".$filename );
-
 			/*
 			 * Convert the XML into an object.
 			 */
@@ -152,7 +150,6 @@ class Parser
 			}
 			catch(Exception $e)
 			{
-                            error_log( "Parser.iterate XML Parsing failed" );
 				/*
 				 * If we can't convert to XML, try cleaning the data first.
 				 */
@@ -211,8 +208,6 @@ class Parser
 		$this->code->order_by = (string) $this->section->order_by;
 		$this->code->history = (string)  $this->section->history;
 		
-                error_log( "Parser.parse catch_line = ".$this->code->catch_line );
-
 		/*
 		 * If additional metadata is present in a "metadata" container, copy it over to our code
 		 * object.
@@ -413,7 +408,6 @@ class Parser
 			$structure->identifier = $struct->identifier;
 			$structure->name = $struct->name;
 			$structure->label = $struct->label;
-			$structure->order_by = $struct->order_by;
 			/* If we've gone through this loop already, then we have a parent ID. */
 			if (isset($this->code->structure_id))
 			{
@@ -450,7 +444,6 @@ class Parser
 			$sql .= ', ' . $name . '=' . $this->db->quote($value);
 		}
 
-                error_log( "Parser.store sql = ".$sql );
 		// Execute the query.
 		$result = $this->db->exec($sql);
 		if ($result === FALSE)
@@ -745,14 +738,11 @@ class Parser
 		{
 			$sql .= ', name=' . $this->db->quote($this->name);
 		}
-                $sql .= ', order_by=' . $this->db->quote($this->order_by);
 		$sql .= ', label=' . $this->db->quote($this->label) . ', date_created=now()';
 		if (isset($this->parent_id))
 		{
 			$sql .= ', parent_id='.$this->parent_id;
 		}
-
-                error_log( "create_structure: sql = ".$sql );
 
 		// Execute the query.
 		$result = $this->db->exec($sql);

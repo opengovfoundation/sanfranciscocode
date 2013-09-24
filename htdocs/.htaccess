@@ -1,24 +1,22 @@
-#Turn off PHP Errors
-php_flag display_errors off
+DirectoryIndex index.php
 
 # Specify our error pages.
 ErrorDocument 404 /404.php
 
 RewriteEngine On
 RewriteBase /
+#RewriteLog "/var/log/apache2/rewrite-localhost3.log"
+#RewriteLogLevel 3
+#LogLevel alert rewrite:trace3
 
 ### SAMPLE REWRITERULES ###
 
-# Requests for a specific section.
-RewriteRule ^(\w+\.\w+\-?\d*)/$ /law.php?section_number=$1 [QSA]
-RewriteRule ^(\w+\.\d+\.\d+)/$ /law.php?section_number=$1 [QSA]
-RewriteRule ^(\w+\-\d+)/$ /law.php?section_number=$1 [QSA]
+# Requests for a specific law.
+#RewriteRule ^([0-9A-Za-z\.]{1,4})-([0-9A-Za-z\.]{1,4})-([0-9A-Za-z\.]{1,4})/$ /law.php?section_number=$1-$2-$3 [QSA]
+RewriteRule ^((?:[0-9A-Za-z\.\(\)-]+_)+(?:[0-9A-Za-z\.\(\)-]+))/$ /law.php?section_number=$1 [QSA]
 
-# Requests for a specific chapter.
-#RewriteRule ^(([0-9a-zA-Z]{1,8}/)+)$ /structure.php [QSA]
-
-# Requests for a specific title.
-RewriteRule ^([0-9A-Za-z]{1,4})/$ /structure.php?title_number=$1 [QSA]
+# Requests for a specific structural unit.
+RewriteRule ^((([-0-9A-Za-z\.\(\)-]{1,8})/)+)$ /structure.php [QSA]
 
 # Requests for the about page.
 RewriteRule ^about/$ /about.php [QSA]

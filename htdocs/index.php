@@ -11,7 +11,7 @@
  * @author		Waldo Jaquith <waldo at jaquith.org>
  * @copyright	2010-2013 Waldo Jaquith
  * @license		http://www.gnu.org/licenses/gpl.html GPL 3
- * @version		0.6
+ * @version		0.7
  * @link		http://www.statedecoded.com/
  * @since		0.1
  *
@@ -21,6 +21,10 @@
  * Include the PHP declarations that drive this page.
  */
 require $_SERVER['DOCUMENT_ROOT'].'/../includes/page-head.inc.php';
+
+if( ENABLE_DEBUG )  {
+	error_log( "index.php Called url = ".$_SERVER['REQUEST_URI'] );
+}
 
 /*
  * Fire up our templating engine.

@@ -6,17 +6,19 @@ header('Content-type: application/json');
 # Include the PHP declarations that drive this page.
 require $_SERVER['DOCUMENT_ROOT'].'/../includes/page-head.inc.php';
 
-if (!isset($_GET['term']) || empty($_GET['term']))
-{
-	json_error('Dictionary term not provided.');
-	die();
-}
+$term = ltrim( $_SERVER["PATH_INFO"], "/" );
+
+//if (!isset($_GET['term']) || empty($_GET['term']))
+//{
+//	json_error('Dictionary term not provided.');
+//	die();
+//}
 
 $api = new API;
 $api->list_all_keys();
 
 # Make sure that the key is the correct (safe) length.
-if ( strlen($_GET['key']) != 16 )
+if ( strlen($_GET["key"]) != 16 )
 {
 	json_error('Invalid API key.');
 	die();
@@ -51,7 +53,7 @@ if (isset($_REQUEST['callback']))
 }
 
 # Clean up the term.
-$term = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
+//$term = filter_input(INPUT_GET, 'term', FILTER_SANITIZE_STRING);
 
 # If a section has been specified, then clean that up.
 if (isset($_GET['section']))

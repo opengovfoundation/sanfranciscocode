@@ -6,9 +6,9 @@
  * PHP version 5
  *
  * @author		Waldo Jaquith <waldo at jaquith.org>
- * @copyright	2010-2013 Waldo Jaquith
+ * @copyright		2010-2013 Waldo Jaquith
  * @license		http://www.gnu.org/licenses/gpl.html GPL 3
- * @version		0.6
+ * @version		0.7
  * @link		http://www.statedecoded.com/
  * @since		0.1
  *
@@ -24,7 +24,7 @@
 /*
  * Include the PHP declarations that drive this page.
  */
-require $_SERVER['DOCUMENT_ROOT'].'/../includes/page-head.inc.php';
+require dirname(dirname(dirname(__FILE__))).'/includes/page-head.inc.php';
 
 /*
  * Include the code with the functions that drive this parser.
@@ -99,7 +99,15 @@ elseif ($_POST['action'] == 'parse')
 	$parser->parse();
 	$parser->write_api_key();
 	$parser->export();
+	$parser->structural_stats_generate();
 	$parser->clear_apc();
+	$parser->prune_views();
+	
+	/*
+	 * Attempt to purge Varnish's cache. (Fails silently if Varnish isn't installed or running.)
+	 */
+	$varnish = new Varnish;
+	$varnish->purge();
 	
 	$body = ob_get_contents();
 	ob_end_clean();

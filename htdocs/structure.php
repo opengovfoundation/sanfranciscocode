@@ -8,7 +8,7 @@
  * @author		Waldo Jaquith <waldo at jaquith.org>
  * @copyright	2010-2013 Waldo Jaquith
  * @license		http://www.gnu.org/licenses/gpl.html GPL 3
- * @version		0.6
+ * @version		0.7
  * @link		http://www.statedecoded.com/
  * @since		0.1
 */
@@ -16,15 +16,21 @@
 # Include the PHP declarations that drive this page.
 require '../includes/page-head.inc.php';
 
+error_log( "structure.php Called url = ".$_SERVER['REQUEST_URI'] );
+
 # Create a new instance of Structure.
 $struct = new Structure();
 
+# Use the URL to identify the requested structural unit.
+$result = $struct->url_to_structure();
+
 # If the URL doesn't represent a valid structural portion of the code, then bail.
-if ( $struct->url_to_structure() === false || empty($struct->structure) )
+if ( $result === FALSE)
 {
 	send_404();
 }
 
+# Set aside the ancestry for this structural unit, to be accessed separately.
 $structure = $struct->structure;
 
 # Fire up our templating engine.
@@ -116,11 +122,36 @@ if (count((array) $structure) > 1)
 	}
 }
 
+# If we have any metadata about this structural unit.
+if (isset($struct->metadata))
+{
+	if (isset($struct->metadata->child_laws) && ($struct->metadata->child_laws > 0) )
+	{
+		$body .= ' It contains ' . number_format($struct->metadata->child_laws) . ' laws';
+		if (isset($struct->metadata->child_structures) && ($struct->metadata->child_structures > 0) )
+		{
+			$body .= ' divided across ' . number_format($struct->metadata->child_structures)
+				. ' structures.';
+		}
+		else
+		{
+			$body .= '.';
+		}
+	}
+	elseif (isset($struct->metadata->child_structures) && ($struct->metadata->child_structures > 0) )
+	{
+		$body .= ' It is divided into ' . number_format($struct->metadata->child_structures)
+			. ' sub-structures.';
+	}
+}
+
 # Get a listing of all the structural children of this portion of the structure.
+error_log( "structure.php: Before list_children" );
 $children = $struct->list_children();
+error_log( "structure.php: After list_children" );
 
 # If we have successfully gotten a list of child structural units, display them.
-if ($children !== false)
+if ($children !== FALSE)
 {
 	/* The level of this child structural unit is that of the current unit, plus one. */
 	$body .= '<dl class="level-'.($structure->{count($structure)-1}->level + 1).'">';
@@ -137,16 +168,21 @@ if ($children !== false)
 $laws = $struct->list_laws();
 
 # If we have successfully gotten a list of laws, display them.
-if ($laws !== false)
+if ($laws !== FALSE)
 {
 
-	$body .= ' It’s comprised of the following '.count((array) $laws).' sections.</p>';
 	$body .= '<dl class="laws">';
 
 	foreach ($laws as $law)
 	{	
+                $pos = strpos( $law->section_number, "_" );
+                if( $pos )  {
+                    $section = substr( $law->section_number, $pos + 1 );
+                    //$section = str_replace('_', '-', $law->section_number);
+                }
+
 		$body .= '
-				<dt><a href="'.$law->url.'">'.SECTION_SYMBOL.'&nbsp;'.$law->section_number.'</a></dt>
+				<dt><a href="'.$law->url.'">'.SECTION_SYMBOL.'&nbsp;'.$section.'</a></dt>
 				<dd><a href="'.$law->url.'">'.$law->catch_line.'</a></dd>';
 	}
 	$body .= '</dl>';

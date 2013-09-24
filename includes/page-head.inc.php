@@ -10,16 +10,11 @@
  * @author		Waldo Jaquith <waldo at jaquith.org>
  * @copyright	2010-2013 Waldo Jaquith
  * @license		http://www.gnu.org/licenses/gpl.html GPL 3
- * @version		0.6
+ * @version		0.7
  * @link		http://www.statedecoded.com/
  * @since		0.1
  *
  */
-
-/* 
- * Include the PEAR database abstraction layer. <http://pear.php.net/package/MDB2>
- */
-require 'MDB2.php';
 
 /* 
  * If APC is not running.
@@ -56,7 +51,7 @@ else
 		/*
 		 * Load constants from the config file.
 		 */
-		require 'config.inc.php';
+		require './config.inc.php';
 	
 		define('APC_RUNNING', TRUE);
 		
@@ -72,8 +67,8 @@ else
 /*
  * Connect to the database.
  */
-$db =& MDB2::connect(MYSQL_DSN);
-if (PEAR::isError($db))
+$db = new PDO( PDO_DSN, PDO_USERNAME, PDO_PASSWORD, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT) );
+if ($db === FALSE)
 {
 
 	/*
@@ -94,16 +89,20 @@ if (PEAR::isError($db))
 	}
 	
 }
+
+/*
+ * Prior to PHP v5.3.6, the PDO does not pass along to MySQL the DSN charset configuration option,
+ * and it must be done manually.
+ */
+if (version_compare(PHP_VERSION, '5.3.6', '<'))
+{
+	$db->exec("SET NAMES utf8");
+}
 		
 /*
  * We're going to need access to the database connection throughout the site.
  */
 global $db;
-
-/*
- * We must always connect to the database with UTF-8.
- */
-$db->setCharset('utf8');
 
 /*
  * Include the functions that drive the site.
