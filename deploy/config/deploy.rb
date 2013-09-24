@@ -54,6 +54,5 @@ set :shared_children, []
 after "deploy:finalize_update" do
   run "ln -nfs #{shared_path}/includes/config.inc.php #{release_path}/includes/config.inc.php"
   run "ln -nfs #{shared_path}/data #{release_path}/htdocs/admin/xml"
-  run "rm -R #{release_path}/htdocs/downloads"
   run "ln -nfs #{shared_path}/downloads #{release_path}/htdocs/downloads"
 end
