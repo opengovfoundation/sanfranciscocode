@@ -1,0 +1,41 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    capistrano (2.15.5)
+      highline
+      net-scp (>= 1.0.0)
+      net-sftp (>= 2.0.0)
+      net-ssh (>= 2.0.14)
+      net-ssh-gateway (>= 1.1.0)
+    capistrano-calendar (0.1.2)
+      capistrano (>= 2.5.5)
+      gdata_19 (>= 1.1.0)
+      json
+    capistrano-multiconfig (0.0.4)
+      capistrano (>= 2.5.5)
+    capistrano-patch (0.0.2)
+      capistrano (>= 2.5.5)
+    capistrano-uptodate (0.0.2)
+      capistrano (>= 2.5.5)
+    capistrano_colors (0.5.5)
+    gdata_19 (1.1.5)
+    highline (1.6.19)
+    json (1.8.0)
+    net-scp (1.1.2)
+      net-ssh (>= 2.6.5)
+    net-sftp (2.1.2)
+      net-ssh (>= 2.6.5)
+    net-ssh (2.7.0)
+    net-ssh-gateway (1.2.0)
+      net-ssh (>= 2.6.5)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  capistrano
+  capistrano-calendar
+  capistrano-multiconfig
+  capistrano-patch
+  capistrano-uptodate
+  capistrano_colors
