@@ -56,3 +56,13 @@ after "deploy:finalize_update" do
   run "ln -nfs #{shared_path}/data #{release_path}/htdocs/admin/xml"
   run "ln -nfs #{shared_path}/downloads #{release_path}/htdocs/downloads"
 end
+
+# Setup the shared folders.  Since we don't symlink these directly,
+# we can't just throw them in :shared_children.
+after "deploy:setup" do
+  run "mkdir #{shared_path}/data"
+  run "mkdir #{shared_path}/downloads"
+  run "chmod a+rw #{shared_path}/downloads"
+  run "mkdir #{shared_path}/includes"
+end
+

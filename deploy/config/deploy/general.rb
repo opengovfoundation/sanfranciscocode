@@ -1,16 +1,21 @@
 
 namespace :world do
   apps = [
-    'bic-codes',
+    'administrative',
+    'building',
     'business',
     'campaign',
     'charter',
     'elections',
+    'electrical',
     'environment',
     'fire',
     'health',
+    'housing',
+    'mechanical',
     'park',
     'planning',
+    'plumbing',
     'port',
     'public-works',
     'subdivision',
