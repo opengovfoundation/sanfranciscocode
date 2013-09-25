@@ -2,7 +2,7 @@
 
 /**
  * The Page class, for rendering HTML and delivering it to the browser
- * 
+ *
  * PHP version 5
  *
  * @author		Waldo Jaquith <waldo at jaquith.org>
@@ -19,7 +19,7 @@
  */
 class Page
 {
-	
+
 	/**
 	 * A shortcut for all steps necessary to turn variables into an output page.
 	 */
@@ -28,14 +28,14 @@ class Page
 		Page::render();
 		Page::display();
 	}
-	
-	
+
+
 	/**
 	 * Combine the populated variables with the template.
 	 */
 	function render()
 	{
-	
+
 		/*
 		 * Save the contents of the template file to a variable. First check APC and see if it's
 		 * stored there.
@@ -53,7 +53,7 @@ class Page
 		{
 			$this->html = file_get_contents(INCLUDE_PATH . '/templates/' . TEMPLATE . '.inc.php');
 		}
-		
+
 		/*
 		 * Create the browser title.
 		 */
@@ -73,7 +73,9 @@ class Page
 		{
 			$field->browser_title .= '—' . SITE_TITLE;
 		}
-		
+
+		$this->field->home_site_url = HOME_SITE_URL;
+
 		/*
 		 * Replace all of our in-page tokens with our defined variables.
 		 */
@@ -81,12 +83,12 @@ class Page
 		{
 			$this->html = str_replace('{{' . $field . '}}', $contents, $this->html);
 		}
-		
+
 		/*
 		 * Erase any unpopulated tokens that remain in our template.
 		 */
 		$this->html = preg_replace('/{{[0-9a-z_]+}}/', '', $this->html);
-		
+
 		/*
 		 * Erase selected containers, if they're empty.
 		 */
@@ -94,20 +96,20 @@ class Page
 		$this->html = preg_replace('/<nav id="intercode">(\s*)<\/nav>/', '', $this->html);
 		$this->html = preg_replace('/<nav id="breadcrumbs">(\s*)<\/nav>/', '', $this->html);
 	}
-	
+
 	/**
 	 * Send the page to the browser.
 	 */
 	function display()
 	{
-	
+
 		if (!isset($this->html))
 		{
 			return FALSE;
 		}
-		
+
 		echo $this->html;
 		return TRUE;
-		
+
 	}
 }

@@ -20,10 +20,10 @@
 	{{inline_css}}
 	<!-- CSS: Generic print styles -->
 	<!--<link rel="stylesheet" media="print" href="/css/print.css"/>-->
-	
+
 	<!-- For the less-enabled mobile browsers like Opera Mini -->
 	<!--<link rel="stylesheet" media="handheld" href="/css/handheld.css"/>-->
-	
+
 	<!-- Make MSIE play nice with HTML5 & Media Queries -->
 	<script src="/js/modernizr.custom.23612.js"></script>
 	<script src="/js/respond.min.js"></script>
@@ -44,13 +44,13 @@
 		</div>
 		<header id="masthead">
 			<hgroup>
-				<h1><a href="/">The State Decoded</a></h1>
+				<h1><a href="{{home_site_url}}">San Francisco Decoded</a></h1>
 			</hgroup>
 			<nav id="main_navigation">
 				<div id="search">
 				</div> <!-- // #search -->
 				<ul>
-					<li><a href="/" class="ir" id="home">Home</a></li>
+					<li><a href="{{home_site_url}}" class="ir" id="home">Home</a></li>
 					<li><a href="/about/" class="ir" id="about">About</a></li>
 				</ul>
 			</nav> <!-- // #main_navigation -->
@@ -60,21 +60,21 @@
 			<nav id="breadcrumbs">
 				{{breadcrumbs}}
 			</nav>
-		
+
 			<nav id="intercode">
 				{{intercode}}
 			</nav> <!-- // #intercode -->
 
 			<h1>{{page_title}}</h1>
-		
+
 			<section id="sidebar">
 			{{sidebar}}
 			</section>
-		
+
 			{{body}}
-		
+
 		</section> <!-- // #page -->
-  
+
 		<footer id="page_footer">
 			<p>Powered by <a href="http://www.statedecoded.com/">The State Decoded</a>.</p>
 		</footer>

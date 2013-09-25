@@ -2,7 +2,7 @@
 
 /**
  * The configuration file that drives The State Decoded.
- * 
+ *
  * PHP version 5
  *
  * @author		Waldo Jaquith <waldo at jaquith.org>
@@ -14,8 +14,8 @@
  *
  */
 
-/* 
- * Define base path 
+/*
+ * Define base path
  */
 
 define('BASE_PATH', dirname(dirname(__FILE__)));
@@ -59,6 +59,11 @@ define('PLACE_NAME', 'State');
  * What does this state call its laws?
  */
 define('LAWS_NAME', 'Code of State');
+
+/*
+ * What's is the base url?
+ */
+define('HOME_SITE_URL', 'http://sanfranciscocode.org/');
 
 /*
  * What is the prefix that indicates a section? In many states, this is §, but in others it might be
