@@ -520,12 +520,17 @@ section#sidebar {
 }
 
 	section#sidebar section {
+	  padding-top: 1em;
 	  border-bottom: 1px solid #dccbaf;
 	  padding-bottom: 1em;
 	  hyphens: auto;
 	  -webkit-hyphens: auto;
 	  -moz-hyphens: auto;
 	}
+
+		section#sidebar section:first-child {
+		  padding-top: 0;
+		}
 
 		section#sidebar section:last-child {
 		  border-bottom: none;
@@ -544,7 +549,7 @@ section#sidebar {
 			  background: transparent url('/images/h_add-to-portfolio.png') top left no-repeat;
 			  float: left;
 			  height: 32px;
-			  margin: 15px 0 15px 18px;
+			  margin: 0px 0 15px 18px;
 			  width: 106px;
 			}
 		section#sidebar section#amendment-attempts > ul > li {
@@ -584,7 +589,7 @@ section#sidebar section h1 {
 	font-size: 1.7em;
 	font-weight: 700;
 	color: #444;
-	margin: 1em 0 0.25em 0;
+	margin: 0 0 0.25em 0;
 	text-transform: uppercase;
 }
 

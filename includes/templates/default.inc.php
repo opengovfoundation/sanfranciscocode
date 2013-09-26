@@ -40,7 +40,7 @@
 <body>
 	<div id="content">
 		<div id="corner-banner">
-			<span><a href="/about/">Beta</a></span>
+			<span><a href="{{home_site_url}}about/">Beta</a></span>
 		</div>
 		<header id="masthead">
 			<hgroup>
@@ -51,7 +51,7 @@
 				</div> <!-- // #search -->
 				<ul>
 					<li><a href="{{home_site_url}}" class="ir" id="home">Home</a></li>
-					<li><a href="/about/" class="ir" id="about">About</a></li>
+					<li><a href="{{home_site_url}}about/" class="ir" id="about">About</a></li>
 				</ul>
 			</nav> <!-- // #main_navigation -->
 		</header> <!-- // #masthead -->
@@ -68,7 +68,17 @@
 			<h1>{{page_title}}</h1>
 
 			<section id="sidebar">
-			{{sidebar}}
+				{{sidebar}}
+				<section>
+					<h1>API</h1>
+						<p>San Francisco Decoded has an API. <a href="{{home_site_url}}api-key/">Register for a key</a> and
+						<a href="https://github.com/statedecoded/statedecoded/wiki/API-Documentation">read the documentation</a>.
+						You could be using it in 30 seconds.</p>
+					</h1>
+				</section>
+				<section>
+					<p>Powered by <a href="http://www.statedecoded.com/">The State Decoded</a>.</p>
+				</section>
 			</section>
 
 			{{body}}
