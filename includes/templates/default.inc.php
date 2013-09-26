@@ -45,7 +45,7 @@
 		<header id="masthead">
 			<hgroup>
 				<h1><a href="{{home_site_url}}">San Francisco Decoded</a></h1>
-				<h2>Accessible, User-Friendly Law for All People</h2>
+				<h2>Accessible, User&#8202;-&#8202;Friendly Law for All People</h2>
 			</hgroup>
 			<nav id="main_navigation">
 				<div id="search">
