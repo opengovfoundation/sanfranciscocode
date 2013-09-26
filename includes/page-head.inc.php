@@ -2,9 +2,9 @@
 
 /**
  * Loads the environment for The State Decoded.
- * 
+ *
  * This is called at the head of every .php file.
- * 
+ *
  * PHP version 5
  *
  * @author		Waldo Jaquith <waldo at jaquith.org>
@@ -16,7 +16,7 @@
  *
  */
 
-/* 
+/*
  * If APC is not running.
  */
 if ( !extension_loaded('apc') || (ini_get('apc.enabled') != 1) )
@@ -26,9 +26,9 @@ if ( !extension_loaded('apc') || (ini_get('apc.enabled') != 1) )
 	 * Include the site's config file.
 	 */
 	require 'config.inc.php';
-	
+
 	define('APC_RUNNING', FALSE);
-	
+
 }
 
 /*
@@ -41,26 +41,26 @@ else
 	 * Attempt to load the config file constants out of APC.
 	 */
 	$result = apc_load_constants('config');
-	
+
 	/*
 	 * If this attempt did not work.
 	 */
 	if ($result === FALSE)
 	{
-	
+
 		/*
 		 * Load constants from the config file.
 		 */
 		require './config.inc.php';
-	
+
 		define('APC_RUNNING', TRUE);
-		
+
 		/*
 		 * And then save them to APC.
 		 */
 		$constants = get_defined_constants(TRUE);
 		apc_define_constants('config', $constants['user']);
-		
+
 	}
 }
 
@@ -68,7 +68,10 @@ else
  * Connect to the database.
  */
 $db = new PDO( PDO_DSN, PDO_USERNAME, PDO_PASSWORD, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT) );
-if ($db === FALSE)
+
+$api_db = new PDO( API_PDO_DSN, API_PDO_USERNAME, API_PDO_PASSWORD, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT) );
+
+if ($db === FALSE || $api_db === false)
 {
 
 	/*
@@ -79,7 +82,7 @@ if ($db === FALSE)
 		require($_SERVER['DOCUMENT_ROOT'] . '/' . ERROR_PAGE_DB);
 		exit();
 	}
-	
+
 	/*
 	 * If no special error page exists, display a generic error.
 	 */
@@ -87,7 +90,7 @@ if ($db === FALSE)
 	{
 		die(SITE_TITLE . ' is having some database trouble right now. Please check back in a few minutes.');
 	}
-	
+
 }
 
 /*
@@ -98,7 +101,7 @@ if (version_compare(PHP_VERSION, '5.3.6', '<'))
 {
 	$db->exec("SET NAMES utf8");
 }
-		
+
 /*
  * We're going to need access to the database connection throughout the site.
  */

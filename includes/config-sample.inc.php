@@ -92,6 +92,14 @@ define('PDO_USERNAME', 'username');
 define('PDO_PASSWORD', 'password');
 
 /*
+ * The DSN to connect to the API's MySQL.
+ */
+define('API_PDO_DSN', 'mysql:dbname=statedecoded_api;host=localhost;charset=utf8');
+define('API_PDO_USERNAME', 'username');
+define('API_PDO_PASSWORD', 'password');
+
+
+/*
  * Specify the structural identifier ancestry for the unit of the code that contains definitions of
  * terms that are used throughout the code, and thus should have a global scope. Separate each
  * identifier with a comma. If all global definitions are found in Title 15A, Part BD, Chapter 16.2,
