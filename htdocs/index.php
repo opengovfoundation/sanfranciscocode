@@ -5,7 +5,7 @@
  *
  * Displays a list of the top-level structural units. May be customized to display introductory
  * text, sidebar content, etc.
- * 
+ *
  * PHP version 5
  *
  * @author		Waldo Jaquith <waldo at jaquith.org>
@@ -41,10 +41,7 @@ $body = '';
 /*
  * Initialize the sidebar variable.
  */
-$sidebar = '
-	<section>
-	<p>Powered by <a href="http://www.statedecoded.com/">The State Decoded</a>.</p>
-	</section>';
+$sidebar = '';
 
 
 /*
