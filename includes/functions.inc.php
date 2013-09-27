@@ -20,11 +20,11 @@ function __autoload_libraries($class_name)
 {
 
 	$filename = 'class.' . $class_name . '.inc.php';
-	if ((include_once INCLUDE_PATH . '/' . $filename) === FALSE)
+	if (file_exists(INCLUDE_PATH . '/' . $filename) !== FALSE)
 	{
-		throw new Exception("Could not include `$filename'.");
+		include_once(INCLUDE_PATH . '/' . $filename);
 	}
-	
+
 }
 spl_autoload_register('__autoload_libraries');
 
@@ -57,7 +57,7 @@ function fetch_url($url)
 	$html = curl_exec($ch);
 	curl_close($ch);
 	return $html;
-	
+
 }
 
 
@@ -88,19 +88,19 @@ function json_error($text)
 		)
 	);
 	$error = json_encode($error);
-	
+
 	/*
 	 * Return a 400 "Bad Request" error. This indicates that the request was invalid. Whether this
 	 * is the best HTTP header is unclear.
 	 */
 	header("HTTP/1.0 400 OK");
-	
+
 	/*
 	 * Send an HTTP header defining the content as JSON.
 	 */
 	header('Content-type: application/json');
 	echo $error;
-	
+
 }
 
 

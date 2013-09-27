@@ -14,6 +14,7 @@
 	<link rel="stylesheet" href="/css/master.css" type="text/css" media="screen">
 	<link rel="stylesheet" href="/css/print.css" type="text/css" media="print">
 	<link rel="stylesheet" href="/css/jquery.qtip.css" type="text/css" media="screen">
+	<link rel="stylesheet" href="/css/contactable.css" type="text/css" media="screen">
 	<link rel="home" title="Home" href="/" />
 	{{link_rel}}
 	{{css}}
@@ -53,7 +54,7 @@
 				</ul>
 			</nav> <!-- // #main_navigation -->
 		</header> <!-- // #masthead -->
-
+		<div id="contactable" class="screen-only"></div>
 		<section id="page">
 			<nav id="breadcrumbs">
 				{{breadcrumbs}}
@@ -106,5 +107,8 @@
 		{{javascript}}
 	</script>
 	<script src="/js/jquery.qtip.min.js"></script>
+	<script src="/js/jquery.contactable.min.js"></script>
+	<script src="/js/jquery.validate.pack.js"></script>
+	<script src="/js/contactable-init.js"></script>
 </body>
 </html>

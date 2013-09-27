@@ -166,3 +166,9 @@ define('API_KEY', '');
  * content, provide the URL (including the port number) here.
  */
 // define('VARNISH_HOST', 'http://127.0.0.1:80/');
+
+/*
+ * Username and Password for SendGrid mailing
+ */
+define('SENDGRID_USERNAME', '');
+define('SENDGRID_PASSWORD', '');
