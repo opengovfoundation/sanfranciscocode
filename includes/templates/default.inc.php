@@ -31,11 +31,8 @@
 	<script src="http://ie7-js.googlecode.com/svn/version/2.1(beta4)/IE9.js"></script>
 	<![endif]-->
 
-	<script src="https://www.google.com/jsapi?key=YOURKEY"></script>
-	<script>
-		google.load("jquery", "1.4.3");
-		google.load("jqueryui", "1.8.11");
-	</script>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/jquery-ui.min.js"></script>
 </head>
 <body>
 	<div id="content">
