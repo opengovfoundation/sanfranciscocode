@@ -4,6 +4,10 @@
 # This file loads all of the scripts used for deployment.
 #
 # Available environments are currently 'production' and 'staging'
+# You need to cd into the deploy directory for this to work - otherwise
+# you will receive an error that the task does not exist.
+# To work with a remote server, you need the proper credentials.  For SD
+# we are using passwordless Auth, so you'll need to setup your ssh config.
 #
 # == Usage
 #
