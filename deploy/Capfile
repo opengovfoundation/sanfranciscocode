@@ -1,3 +1,35 @@
+##
+# = Capfile
+#
+# This file loads all of the scripts used for deployment.
+#
+# Available environments are currently 'production' and 'staging'
+#
+# == Usage
+#
+# To deploy a single site:
+#   +cap site:environment deploy+
+#
+# === Example:
+#   +cap building:staging deploy+
+#
+#
+# To setup the necessary repo structures on the remote server for a single site
+#    +cap site:environment deploy:setup+
+#
+# === Example:
+#   +cap building:staging deploy:setup+
+#
+#
+# To deploy all sites in a given environment (slightly different syntax):
+#    +cap general world:deploy ENV='environment'+
+#
+# === Example:
+#   +cap general world:deploy ENV='production'+
+#
+
+
+
 #
 # Load deploy capistrano recipe
 #
