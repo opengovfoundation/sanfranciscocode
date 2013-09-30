@@ -16,7 +16,7 @@
 
 			$mail = new SendGrid\Mail();
 			$mail->addTo($em)
-				->setFrom('sayhello@opengovfoundation.org')
+				->setFrom(EMAIL_ADDRESS)
 				->setSubject($subject)
 				->setText($message);
 
@@ -48,7 +48,7 @@
 
 
 	//send the email
-	$result = email('sayhello@opengovfoundation.org', $subject, $contactMessage);
+	$result = email(CONTACT_EMAIL, $subject, $contactMessage);
 
 	if($result)
 	{

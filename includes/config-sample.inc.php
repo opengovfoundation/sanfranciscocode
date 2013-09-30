@@ -139,10 +139,14 @@ define('SECTION_PCRE_STRUCTURE','title,title,section,section');
 
 /**
  * When there is cause to send an e-mail (e.g., API registration), what "From" address should be
- * used? And what name should appear in the "From" field?
+ * used? And what name should appear in the "From" field?  What address should we use for
+ * emails coming to us?
  */
 define('EMAIL_ADDRESS', '');
 define('EMAIL_NAME', SITE_TITLE);
+
+define('CONTACT_EMAIL', EMAIL_ADDRESS);
+
 
 
 /**
