@@ -6,7 +6,8 @@ header('Content-type: application/json');
 # Include the PHP declarations that drive this page.
 require $_SERVER['DOCUMENT_ROOT'].'/../includes/page-head.inc.php';
 
-$section = ltrim( $_SERVER["PATH_INFO"], "/" );
+$section = filter_input(INPUT_GET, 'section', FILTER_SANITIZE_STRING);
+$section = ltrim( $section, "/" );
 
 
 /* if (!isset($_GET['section']) || empty($_GET['section'])) */
@@ -44,7 +45,7 @@ elseif (!isset($api->all_keys->$key))
 if (isset($_REQUEST['callback']))
 {
 	$callback = $_REQUEST['callback'];
-	
+
 	# If this callback contains any reserved terms that raise XSS concerns, refuse to proceed.
 	if (valid_jsonp_callback($callback) === false)
 	{
@@ -104,10 +105,10 @@ if (isset($_GET['fields']))
 	{
 		$field = trim($field);
 	}
-	
+
 	# It's essential to unset $field at the conclusion of the prior loop.
 	unset($field);
-	
+
 	# Step through our response fields and eliminate those that aren't in the requested list.
 	foreach($response as $field => &$value)
 	{
