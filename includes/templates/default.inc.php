@@ -75,6 +75,7 @@
 				</section>
 				<section>
 					<p>Powered by <a href="http://www.statedecoded.com/">The State Decoded</a>.</p>
+					<p><a href="{{home_site_url}}about/#about-disclaimer">Disclaimer</a>.</p>
 				</section>
 			</section>
 
@@ -97,6 +98,7 @@
 				competent attorney. OpenGov makes no guarantee that this information is
 				accurate or up-to-date, although we try our best. Seriously, OpenGov is
 				not your attorney. Heck, we’re not attorneys at all.
+				<a href="{{home_site_url}}about/#about-disclaimer">Disclaimer</a>.
 			</p>
 		</footer>
 	</div>
