@@ -11,18 +11,18 @@ RewriteBase /
 
 ### SAMPLE REWRITERULES ###
 
+# Requests for the about page.
+RewriteRule ^about/$ /about.php [QSA]
+
+# Requests for the API key registration page.
+RewriteRule ^api-key/$ /api-key.php [QSA]
+
 # Requests for a specific law.
 #RewriteRule ^([0-9A-Za-z\.]{1,4})-([0-9A-Za-z\.]{1,4})-([0-9A-Za-z\.]{1,4})/$ /law.php?section_number=$1-$2-$3 [QSA]
 RewriteRule ^((?:[0-9A-Za-z\.\(\)-]+_)+(?:[0-9A-Za-z\.\(\)-]+))/$ /law.php?section_number=$1 [QSA]
 
 # Requests for a specific structural unit.
 RewriteRule ^((([-0-9A-Za-z\.\(\)-]{1,8})/)+)$ /structure.php [QSA]
-
-# Requests for the about page.
-RewriteRule ^about/$ /about.php [QSA]
-
-# Requests for the API key registration page.
-RewriteRule ^api-key/$ /api-key.php [QSA]
 
 # If this is a request for a plain-text version of a page, translate the extention into a specific
 # request.
