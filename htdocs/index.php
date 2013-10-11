@@ -72,7 +72,7 @@ $body .= '<article>
 	<h1>Sections of the '.LAWS_NAME.'</h1>
 	<p>These are the sections of the '.LAWS_NAME.'.</p>
 	<ul class="level-1">
-		' . /*<li><a href="http://administrative.sanfranciscocode.org/">Administrative</a></li>*/ '
+		<li><a href="http://administrative.sanfranciscocode.org/">Administrative</a></li>
 		' . /*<!--li><a href="http://building.sanfranciscocode.org/">Building</a></li>*/ '
 		<li><a href="http://business.sanfranciscocode.org/">Business</a></li>
 		<li><a href="http://campaign.sanfranciscocode.org/">Campaign</a></li>
