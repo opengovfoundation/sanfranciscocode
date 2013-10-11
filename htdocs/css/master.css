@@ -82,6 +82,7 @@ code,
 kbd,
 samp {
 	font-family: monospace, sans-serif;
+	font-size: 0.9em;
 }
 
 /*
@@ -768,6 +769,25 @@ dl.level-2 dd a, dl.laws dd a, dl.level-1 dd a {
 	text-decoration: none;
 	color: #444;
 }
+
+/* About page */
+.title-only, .title-only:hover {
+    color: inherit;
+    text-decoration: inherit;
+}
+
+/* API page */
+.api-register {
+    margin-top: 4em;
+}
+
+.bulk-data-links {
+    display: inline-block;
+    vertical-align: top;
+    list-style: none;
+    width: 200px;
+}
+
 
 
 /*
