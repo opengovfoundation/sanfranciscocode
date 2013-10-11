@@ -66,6 +66,11 @@ define('LAWS_NAME', 'Code of State');
 define('HOME_SITE_URL', 'http://sanfranciscocode.org/');
 
 /*
+ * What's the base domain name?
+ */
+define('BASE_SITE_DOMAIN', 'sanfranciscocode.org');
+
+/*
  * What is the prefix that indicates a section? In many states, this is §, but in others it might be
  * "s".
  */

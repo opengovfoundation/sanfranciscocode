@@ -72,25 +72,25 @@ $body .= '<article>
 	<h1>Sections of the '.LAWS_NAME.'</h1>
 	<p>These are the sections of the '.LAWS_NAME.'.</p>
 	<ul class="level-1">
-		<li><a href="http://administrative.sanfranciscocode.org/">Administrative</a></li>
-		' . /*<!--li><a href="http://building.sanfranciscocode.org/">Building</a></li>*/ '
-		<li><a href="http://business.sanfranciscocode.org/">Business</a></li>
-		<li><a href="http://campaign.sanfranciscocode.org/">Campaign</a></li>
-		<li><a href="http://charter.sanfranciscocode.org/">Charter</a></li>
-		<li><a href="http://elections.sanfranciscocode.org/">Elections</a></li>
-		<li><a href="http://electrical.sanfranciscocode.org/">Electrical</a></li>
-		<li><a href="http://environment.sanfranciscocode.org/">Environment</a></li>
-		<li><a href="http://fire.sanfranciscocode.org/">Fire</a></li>
-		<li><a href="http://health.sanfranciscocode.org/">Health</a></li>
-		<li><a href="http://housing.sanfranciscocode.org/">Housing</a></li>
-		<li><a href="http://mechanical.sanfranciscocode.org/">Mechanical</a></li>
-		<li><a href="http://park.sanfranciscocode.org/">Park</a></li>
-		<li><a href="http://planning.sanfranciscocode.org/">Planning</a></li>
-		<li><a href="http://plumbing.sanfranciscocode.org/">Plumbing</a></li>
-		<li><a href="http://port.sanfranciscocode.org/">Port</a></li>
-		<li><a href="http://public-works.sanfranciscocode.org/">Public Works</a></li>
-		<li><a href="http://subdivision.sanfranciscocode.org/">Subdivision</a></li>
-		<li><a href="http://transportation.sanfranciscocode.org/">Transportation</a></li>
+		<li><a href="http://administrative.'.BASE_SITE_DOMAIN.'/">Administrative</a></li>
+		' . /*<!--li><a href="http://building.'.BASE_SITE_DOMAIN.'/">Building</a></li>*/ '
+		<li><a href="http://business.'.BASE_SITE_DOMAIN.'/">Business</a></li>
+		<li><a href="http://campaign.'.BASE_SITE_DOMAIN.'/">Campaign</a></li>
+		<li><a href="http://charter.'.BASE_SITE_DOMAIN.'/">Charter</a></li>
+		<li><a href="http://elections.'.BASE_SITE_DOMAIN.'/">Elections</a></li>
+		<li><a href="http://electrical.'.BASE_SITE_DOMAIN.'/">Electrical</a></li>
+		<li><a href="http://environment.'.BASE_SITE_DOMAIN.'/">Environment</a></li>
+		<li><a href="http://fire.'.BASE_SITE_DOMAIN.'/">Fire</a></li>
+		<li><a href="http://health.'.BASE_SITE_DOMAIN.'/">Health</a></li>
+		<li><a href="http://housing.'.BASE_SITE_DOMAIN.'/">Housing</a></li>
+		<li><a href="http://mechanical.'.BASE_SITE_DOMAIN.'/">Mechanical</a></li>
+		<li><a href="http://park.'.BASE_SITE_DOMAIN.'/">Park</a></li>
+		<li><a href="http://planning.'.BASE_SITE_DOMAIN.'/">Planning</a></li>
+		<li><a href="http://plumbing.'.BASE_SITE_DOMAIN.'/">Plumbing</a></li>
+		<li><a href="http://port.'.BASE_SITE_DOMAIN.'/">Port</a></li>
+		<li><a href="http://public-works.'.BASE_SITE_DOMAIN.'/">Public Works</a></li>
+		<li><a href="http://subdivision.'.BASE_SITE_DOMAIN.'/">Subdivision</a></li>
+		<li><a href="http://transportation.'.BASE_SITE_DOMAIN.'/">Transportation</a></li>
 	</ul>
 </article>';
 
