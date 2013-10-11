@@ -61,8 +61,10 @@ end
 # we can't just throw them in :shared_children.
 after "deploy:setup" do
   run "mkdir #{shared_path}/data"
+  run "chmod g+rw #{shared_path}/data"
   run "mkdir #{shared_path}/downloads"
   run "chmod a+rw #{shared_path}/downloads"
   run "mkdir #{shared_path}/includes"
+  run "chmod g+rw #{shared_path}/includes"
 end
 
