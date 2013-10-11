@@ -19,7 +19,8 @@ namespace :world do
     'port',
     'public-works',
     'subdivision',
-    'transportation'
+    'transportation',
+    'www'
   ]
 
   task :deploy do
