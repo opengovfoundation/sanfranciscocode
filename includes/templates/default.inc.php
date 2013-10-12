@@ -75,6 +75,8 @@
 				</section>
 				<section>
 					<p>Powered by <a href="http://www.statedecoded.com/">The State Decoded</a>.</p>
+				</section>
+				<section>
 					<p><a href="{{home_site_url}}about/#about-disclaimer">Disclaimer</a>.</p>
 				</section>
 			</section>
