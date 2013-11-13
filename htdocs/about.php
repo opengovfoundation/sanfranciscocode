@@ -131,21 +131,22 @@ Hosted on
 <a class="title-only" id="about-disclaimer">Disclaimer</a>
 </h2>
 <p>
-This is not the official copy of the City and County of San Francisco’s Code
-and should not be relied upon for legal or any other official purposes. Please
-refer to the official printed copy available
-<a href="http://www.amlegal.com/library/ca/sfrancisco.shtml">here</a>
-from the City of San Francisco and American Legal Publishing.
+	This is not an official copy of the Municipal Codes of San
+	Francisco and should not be relied upon for legal or other official purposes.
+	Please refer to the <a href="http://www.amlegal.com/library/ca/sfrancisco.shtml"
+	>Official Codes</a> provided by American Legal Publishing for
+	the verified and official codes. You may not modify these codes and then
+	represent them as the original or official codes of the City and County of San
+	Francisco. The code can only be officially changed through the legislative
+	process and willfully misrepresenting modified code as the official code of
+	the City and County of San Francisco is strictly prohibited.
 </p>
 <p>
-<a href="http://www.amlegal.com/library/ca/sfrancisco.shtml">
-</a>
+	The <a href="http://opengovfoundation.org/">OpenGov Foundation</a>,
+	City and County of San Francisco offers Open Law data with no warranty as to
+	accuracy or completeness.
 </p>
-<p>
-The
-<a href="http://opengovfoundation.org/">OpenGov Foundation</a>, City and County of San Francisco offers Open Law data with no warranty as to
-accuracy or completeness.
-</p>
+
 ';
 
 $sidebar = '
@@ -170,24 +171,6 @@ $sidebar = '
 		</p>
 		<p>
 			Want to open your city or state? <a href="mailto:sayhello@opengovfoundation.org?Subject=Help%20Open%20My%20City%20or%20State">Drop us a line!</a>
-		</p>
-	</section>
-	<section>
-		<p>
-			This is not an official copy of the Municipal Codes of San
-			Francisco and should not be relied upon for legal or other official purposes.
-			Please refer to the <a href="http://www.amlegal.com/library/ca/sfrancisco.shtml"
-			>Official Codes</a> provided by American Legal Publishing for
-			the verified and official codes. You may not modify these codes and then
-			represent them as the original or official codes of the City and County of San
-			Francisco. The code can only be officially changed through the legislative
-			process and willfully misrepresenting modified code as the official code of
-			the City and County of San Francisco is strictly prohibited.
-		</p>
-		<p>
-			The <a href="http://opengovfoundation.org/">OpenGov Foundation</a>,
-			City and County of San Francisco offers Open Law data with no warranty as to
-			accuracy or completeness.
 		</p>
 	</section>
 ';
