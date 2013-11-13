@@ -77,7 +77,17 @@
 					<p>Powered by <a href="http://www.statedecoded.com/">The State Decoded</a>.</p>
 				</section>
 				<section>
-					<p><a href="{{home_site_url}}about/#about-disclaimer">Disclaimer</a>.</p>
+					<p>
+						This is not an official copy of the Municipal Codes of San Francisco and
+						should not be relied upon for legal or other official purposes. Please refer
+						to the <a href="http://www.amlegal.com/library/ca/sfrancisco.shtml"
+						>Official Codes</a> provided by American Legal Publishing for the verified
+						and official codes. You may not modify these codes and then represent them as
+						the original or official codes of the City and County of San Francisco. The
+						code can only be officially changed through the legislative process and
+						willfully misrepresenting modified code as the official code of the City and
+						County of San Francisco is strictly prohibited.
+					</p>
 				</section>
 			</section>
 
