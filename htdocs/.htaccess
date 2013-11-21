@@ -1,29 +1,32 @@
-DirectoryIndex index.php
-
 # Specify our error pages.
 ErrorDocument 404 /404.php
 
+<IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
-#RewriteLog "/var/log/apache2/rewrite-localhost3.log"
-#RewriteLogLevel 3
-#LogLevel alert rewrite:trace3
-
-### SAMPLE REWRITERULES ###
-
-# Requests for the about page.
-RewriteRule ^about/$ /about.php [QSA]
-
-# Requests for the API key registration page.
-RewriteRule ^api-key/$ /api-key.php [QSA]
-
-# Requests for a specific law.
-#RewriteRule ^([0-9A-Za-z\.]{1,4})-([0-9A-Za-z\.]{1,4})-([0-9A-Za-z\.]{1,4})/$ /law.php?section_number=$1-$2-$3 [QSA]
-RewriteRule ^((?:[0-9A-Za-z\.\(\)-]+_)+(?:[0-9A-Za-z\.\(\)-]+))/$ /law.php?section_number=$1 [QSA]
-
-# Requests for a specific structural unit.
-RewriteRule ^((([-0-9A-Za-z\.\(\)-]{1,8})/)+)$ /structure.php [QSA]
 
 # If this is a request for a plain-text version of a page, translate the extention into a specific
 # request.
-RewriteRule ^(.*)\.txt$ /$1/?plain_text=y
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)\.txt$ /$1/?plain_text=y [PT]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/downloads/current/code-json%{REQUEST_URI} -f
+RewriteRule ^(.*\.json)$ /downloads/current/code-json/$1 [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([^/]+)/(.*?\.json)$ /downloads/$1/code-json/$2 [L]
+
+
+RewriteRule ^index\.php$ - [L]
+
+RewriteRule ^admin/ /index.php [L]
+RewriteRule ^downloads/$ /index.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
