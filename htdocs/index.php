@@ -4,7 +4,7 @@
  * Index
  *
  * Routes all the main requests. The site's home page can be found at home.php.
- * 
+ *
  * PHP version 5
  *
  * @license		http://www.gnu.org/licenses/gpl.html GPL 3
@@ -21,7 +21,7 @@
  */
 if ( !isset($_SERVER['INCLUDE_PATH']) )
 {
-	
+
 	/*
 	 * Try a couple of likely locations.
 	 */
@@ -33,13 +33,13 @@ if ( !isset($_SERVER['INCLUDE_PATH']) )
 	{
 		$include_path = dirname(dirname(__FILE__)) . '/includes/';
 	}
-	
+
 	/*
 	 * Since we have not found it, recurse through the directories to locate it.
 	 */
 	else
 	{
-		
+
 		/*
 		 * These are the directories that we want to peer into the child directories of -- the
 		 * current directory and its parent directory.
@@ -47,22 +47,22 @@ if ( !isset($_SERVER['INCLUDE_PATH']) )
 		$parent_directories = array('.', '..');
 		foreach ($parent_directories as $parent_directory)
 		{
-			
+
 			/*
 			 * Iterate through all of the parent directory's contents.
 			 */
 			$files = scandir($parent_directory);
 			foreach ($files as $file)
 			{
-				
+
 				/*
 				 * If this file is a directory, peer into its contents.
 				 */
 				if ( ($file != '.') && ($file != '..') && is_dir($parent_directory . '/' . $file) )
 				{
-				
+
 					$child_files = scandir($parent_directory . '/' . $file);
-					
+
 					/*
 					 * To pick a file more or less at random, we look for class.Law.inc.php.
 					 */
@@ -71,22 +71,22 @@ if ( !isset($_SERVER['INCLUDE_PATH']) )
 						$include_path = realpath(dirname(__FILE__) . '/' . $parent_directory . '/' . $file . '/');
 						break(2);
 					}
-					
+
 				}
-				
+
 			}
-			
+
 		}
-		
+
 	}
-	
+
 	/*
 	 * If we've defined our include path, then modify this file to store it permanently and store it
 	 * as a constant.
 	 */
 	if (isset($include_path))
 	{
-		
+
 		/*
 		 * If possible, modify the .htaccess file, to store permanently the include path.
 		 *
@@ -96,16 +96,16 @@ if ( !isset($_SERVER['INCLUDE_PATH']) )
 		 */
 		if (is_writable('.htaccess') == TRUE)
 		{
-			
+
 			$htaccess = PHP_EOL . PHP_EOL . 'SetEnv INCLUDE_PATH ' . $include_path . PHP_EOL;
 			$result = file_put_contents('.htaccess' , $htaccess, FILE_APPEND);
-			
+
 		}
-		
+
 		define('INCLUDE_PATH', $include_path);
-		
+
 	}
-	
+
 }
 
 /*
@@ -184,6 +184,7 @@ else
 try
 {
 	$db = new PDO( PDO_DSN, PDO_USERNAME, PDO_PASSWORD, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT) );
+	$api_db = new PDO( API_PDO_DSN, API_PDO_USERNAME, API_PDO_PASSWORD, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT) );
 }
 
 /*
