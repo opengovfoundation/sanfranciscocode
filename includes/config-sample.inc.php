@@ -66,6 +66,13 @@ define('THEME_DIR', TEMPLATE_DIR . THEME_NAME . '/');
 define('THEME_WEB_PATH', '/themes/' . THEME_NAME . '/');
 
 /*
+ * What's the base domain name?
+ */
+define('HOME_SITE_URL', 'http://sanfranciscocode.org/');
+
+define('BASE_SITE_DOMAIN', 'sanfranciscocode.org');
+
+/*
  * Define the default version of the API to send requests to, if a version isn't othewise specified.
  */
 define('CURRENT_API_VERSION', '1.0');

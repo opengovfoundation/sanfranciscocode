@@ -2,7 +2,6 @@
 
   hgroup {
     text-align: center;
-    margin-top: 2em;
 
     h1 {
       font-family: $statedecoded-stack1;
@@ -28,7 +27,6 @@
 
   section.secondary-content {
     float: right;
-    margin-top: 30px;
     width: 50%;
 
     @include respond-to(smartphone) {
@@ -42,89 +40,103 @@
       width: 66%;
     }
 
-    article.abstract {
-      font-size: 87.5%;
+  } // section.secondary-content
+
+  article.abstract {
+    font-size: 87.5%;
+    position: relative;
+
+    &:nth-child(1) {
+      border-right: 1px solid #ccc;
+      float: left;
+      margin-bottom: 20px;
+      padding-right: 5%;
+      margin-right: 5%;
+      width: 50%;
+
+      @include respond-to(smartphone) {
+        border-right: none;
+        float: none;
+        width: 100%;
+      }
+
+      @include respond-to(tablet) {
+      }
+    }
+
+    &:nth-child(2) {
+      float: right;
+      margin-bottom: 20px;
+      width: 39%;
+
+      @include respond-to(smartphone) {
+        float: none;
+        width: 100%;
+      }
+
+      @include respond-to(tablet) {
+      }
+    }
+
+    &:nth-child(3) {
+      clear: both;
+      margin: 20px 0;
+    }
+
+    figure {
+      height: 125px;
+      margin: 20px 0;
+      padding: 0;
       position: relative;
+      overflow: hidden;
+      width: 100%;
 
-      &:nth-child(1) {
-        border-right: 1px solid #ccc;
-        float: left;
-        margin-bottom: 20px;
-        padding-right: 5%;
-        margin-right: 5%;
-        width: 50%;
-
-        @include respond-to(smartphone) {
-          border-right: none;
-          float: none;
-          width: 100%;
-        }
-
-        @include respond-to(tablet) {
-        }
+      @include respond-to(smartphone) {
+        height: 75px;
       }
 
-      &:nth-child(2) {
-        float: right;
-        margin-bottom: 20px;
-        width: 39%;
-
-        @include respond-to(smartphone) {
-          float: none;
-          width: 100%;
-        }
-
-        @include respond-to(tablet) {
-        }
+      @include respond-to(tablet) {
+        height: 100px;
       }
 
-      &:nth-child(3) {
-        clear: both;
-        margin: 20px 0;
-      }
-
-      figure {
-        height: 125px;
-        margin: 20px 0;
-        padding: 0;
-        position: relative;
-        overflow: hidden;
+      img {
+        position: absolute;
+          top: -120px;
+          left: 0;
         width: 100%;
 
         @include respond-to(smartphone) {
-          height: 75px;
+          top: -70px;
         }
 
         @include respond-to(tablet) {
-          height: 100px;
+          top:-150px;
         }
-
-        img {
-          position: absolute;
-            top: -120px;
-            left: 0;
-          width: 100%;
-
-          @include respond-to(smartphone) {
-            top: -70px;
-          }
-
-          @include respond-to(tablet) {
-            top:-150px;
-          }
-        }
-      } // figure
-
-      h1 {
-        font-family: $statedecoded-stack3;
-        font-size: 107.1428%;
-        font-weight: normal;
-        margin: 0;
-        text-transform: uppercase;
       }
+    } // figure
+
+    h1 {
+      font-family: $statedecoded-stack3;
+      font-size: 107.1428%;
+      font-weight: normal;
+      margin: 0;
+      text-transform: uppercase;
+    }
 
   } // article.abstract
 
-  } // section.secondary-content
+  .code-sections-list {
+  	float: left;
+  	width: 50%;
+  	padding-left: 20%;
+  	padding-right: 0;
+
+    &:nth-child(2) {
+    	width: 30%;
+    	padding-left: 10%;
+  	}
+  }
+
+
 
 } // .homepage
