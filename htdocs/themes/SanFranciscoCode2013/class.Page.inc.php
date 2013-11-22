@@ -154,6 +154,9 @@ class SanFranciscoCode2013__Page extends Page
 		$content->append('javascript',
 			'var zclip_swf_file = "' . THEME_WEB_PATH . 'static/js/vendor/ZeroClipboard.swf";');
 
+		$content->append('base_site_domain', BASE_SITE_DOMAIN);
+		$content->append('home_site_url', HOME_SITE_URL);
+
 		/*
 		 * Setup assets
 		 */

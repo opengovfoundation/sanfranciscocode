@@ -27,7 +27,7 @@
   <div id="container"><!-- Hack for footer lock -->
 	<header id="page_header">
 		<div class="nest">
-			<a href="/" class="noprint">
+			<a href="{{home_site_url}}" class="noprint">
 				<hgroup id="place_logo">
 					<h1>{{place_name}}</h1>
 					<h2>Decoded</h2>
@@ -49,7 +49,7 @@
 						<a href="/browse/" id="browse">Browse</a>
 					</li>
 					<li>
-						<a href="/about/" id="about">About Us</a>
+						<a href="{{home_site_url}}about/" id="about">About Us</a>
 					</li>
 					<li>
 						<a href="/downloads/" id="downloads">Downloads</a>
