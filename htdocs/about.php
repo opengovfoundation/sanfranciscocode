@@ -5,28 +5,25 @@
  *
  * PHP version 5
  *
- * @author		Waldo Jaquith <waldo at jaquith.org>
- * @copyright	2010-2013 Waldo Jaquith
  * @license		http://www.gnu.org/licenses/gpl.html GPL 3
- * @version		0.7
+ * @version		0.8
  * @link		http://www.statedecoded.com/
  * @since		0.1
  *
  */
 
-# Include the PHP declarations that drive this page.
-require $_SERVER['DOCUMENT_ROOT'].'/../includes/page-head.inc.php';
+/*
+ * Create a container for our content.
+ */
+$content = new Content();
 
-# Fire up our templating engine.
-$template = new Page;
+/*
+ * Define some page elements.
+ */
+$content->set('browser_title', 'About');
+$content->set('page_title', 'About');
 
-# Define some page elements.
-$template->field->browser_title = 'About';
-$template->field->page_title = 'About';
-
-$body = '
-
-<h2>
+$body = '<h2>
 <a class="title-only" id="about-introduction">Introduction</a>
 </h2>
 <p>
@@ -145,12 +142,9 @@ Hosted on
 	The <a href="http://opengovfoundation.org/">OpenGov Foundation</a>,
 	City and County of San Francisco offers Open Law data with no warranty as to
 	accuracy or completeness.
-</p>
+</p>';
 
-';
-
-$sidebar = '
-	<section>
+$sidebar = '<section>
 	<h1>Welcome</h1>
 	<p>
 		SanFranciscoCode.org provides the San Francisco City laws, rules and
@@ -172,16 +166,33 @@ $sidebar = '
 		<p>
 			Want to open your city or state? <a href="mailto:sayhello@opengovfoundation.org?Subject=Help%20Open%20My%20City%20or%20State">Drop us a line!</a>
 		</p>
-	</section>
-';
-# Put the shorthand $body variable into its proper place.
-$template->field->body = $body;
+	</section>';
+
+/*
+ * Put the shorthand $body variable into its proper place.
+ */
+$content->set('body', $body);
 unset($body);
 
-# Put the shorthand $sidebar variable into its proper place.
-$template->field->sidebar = $sidebar;
+/*
+ * Put the shorthand $sidebar variable into its proper place.
+ */
+$content->set('sidebar', $sidebar);
 unset($sidebar);
 
-# Parse the template, which is a shortcut for a few steps that culminate in sending the content
-# to the browser.
-$template->parse();
+/*
+ * Add the custom classes to the body.
+ */
+$content->set('body_class', 'law inside');
+
+
+/*
+ * Fire up our templating engine.
+ */
+$template = Template::create();
+
+/*
+ * Parse the template, which is a shortcut for a few steps that culminate in sending the content
+ * to the browser.
+ */
+$template->parse($content);

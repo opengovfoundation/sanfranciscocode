@@ -1,113 +1,289 @@
 <?php
 
 /**
- * The site home page.
+ * Index
  *
- * Displays a list of the top-level structural units. May be customized to display introductory
- * text, sidebar content, etc.
+ * Routes all the main requests. The site's home page can be found at home.php.
  *
  * PHP version 5
  *
- * @author		Waldo Jaquith <waldo at jaquith.org>
- * @copyright	2010-2013 Waldo Jaquith
  * @license		http://www.gnu.org/licenses/gpl.html GPL 3
- * @version		0.7
+ * @version		0.8
  * @link		http://www.statedecoded.com/
- * @since		0.1
+ * @since		0.8
  *
  */
 
 /*
- * Include the PHP declarations that drive this page.
+ * If we have not defined the include path yet, then try to do so automatically. Once we have
+ * automatically defined the include path, we store it in .htaccess, where it becomes available
+ * within the scope of $_SERVER.
  */
-require $_SERVER['DOCUMENT_ROOT'].'/../includes/page-head.inc.php';
+if ( !isset($_SERVER['INCLUDE_PATH']) )
+{
 
-if( ENABLE_DEBUG )  {
-	error_log( "index.php Called url = ".$_SERVER['REQUEST_URI'] );
+	/*
+	 * Try a couple of likely locations.
+	 */
+	if (file_exists('includes'))
+	{
+		$include_path = dirname(__FILE__) . '/includes/';
+	}
+	elseif (file_exists('../includes'))
+	{
+		$include_path = dirname(dirname(__FILE__)) . '/includes/';
+	}
+
+	/*
+	 * Since we have not found it, recurse through the directories to locate it.
+	 */
+	else
+	{
+
+		/*
+		 * These are the directories that we want to peer into the child directories of -- the
+		 * current directory and its parent directory.
+		 */
+		$parent_directories = array('.', '..');
+		foreach ($parent_directories as $parent_directory)
+		{
+
+			/*
+			 * Iterate through all of the parent directory's contents.
+			 */
+			$files = scandir($parent_directory);
+			foreach ($files as $file)
+			{
+
+				/*
+				 * If this file is a directory, peer into its contents.
+				 */
+				if ( ($file != '.') && ($file != '..') && is_dir($parent_directory . '/' . $file) )
+				{
+
+					$child_files = scandir($parent_directory . '/' . $file);
+
+					/*
+					 * To pick a file more or less at random, we look for class.Law.inc.php.
+					 */
+					if (in_array('class.Law.inc.php', $child_files) === TRUE)
+					{
+						$include_path = realpath(dirname(__FILE__) . '/' . $parent_directory . '/' . $file . '/');
+						break(2);
+					}
+
+				}
+
+			}
+
+		}
+
+	}
+
+	/*
+	 * If we've defined our include path, then modify this file to store it permanently and store it
+	 * as a constant.
+	 */
+	if (isset($include_path))
+	{
+
+		/*
+		 * If possible, modify the .htaccess file, to store permanently the include path.
+		 *
+		 * If we *can't* modify the .htaccess file, then we have to define the constant on the fly,
+		 * with every page view. This is really quite undesirable, because it will slow down the
+		 * site non-trivially, but it's better than not working at all.
+		 */
+		if (is_writable('.htaccess') == TRUE)
+		{
+
+			$htaccess = PHP_EOL . PHP_EOL . 'SetEnv INCLUDE_PATH ' . $include_path . PHP_EOL;
+			$result = file_put_contents('.htaccess' , $htaccess, FILE_APPEND);
+
+		}
+
+		define('INCLUDE_PATH', $include_path);
+
+	}
+
 }
 
 /*
- * Fire up our templating engine.
+ * Save the include path as a constant.
  */
-$template = new Page;
-
-$template->field->browser_title = SITE_TITLE.': The '.LAWS_NAME.', for Humans.';
+if (isset($_SERVER['INCLUDE_PATH']))
+{
+	define('INCLUDE_PATH', $_SERVER['INCLUDE_PATH']);
+}
 
 /*
- * Initialize the body variable.
+ * If the edition ID was provided by the .htaccess file, save it as a constant.
  */
-$body = '';
+if (isset($_SERVER['EDITION_ID']))
+{
+	define('EDITION_ID', $_SERVER['EDITION_ID']);
+}
 
 /*
- * Initialize the sidebar variable.
+ * If APC is not running.
  */
-$sidebar = '
-	<section>
-	<h1>Welcome</h1>
-	<p>
-		SanFranciscoCode.org provides the San Francisco City laws, rules and
-		regulations on one friendly website. No copyright restrictions, a
-		modern API and all of the niceties of modern website design. It’s like
-		the expensive software lawyers use, but free and wonderful.
-	</p>
-	<p>
-		This is a public beta test of <a href="http:///www.sanfranciscocode.org">SanFranciscoCode.org</a>, which is to say that
-		everything is under development. Things may be funny looking, broken, and
-		generally under development right now.
-	</p>
-	</section>
-	<section>
-		<h1>Stay Updated</h1>
-		<p>
-			<a href="http://eepurl.com/FUc0b">Click here to join our mailing list</a>
-		</p>
-		<p>
-			Want to open your city or state? <a href="mailto:sayhello@opengovfoundation.org?Subject=Help%20Open%20My%20City%20or%20State">Drop us a line!</a>
-		</p>
-	</section>';
+if ( !extension_loaded('apc') || (ini_get('apc.enabled') != 1) )
+{
 
+	/*
+	 * Include the site's config file.
+	 */
+	if ( (include INCLUDE_PATH . '/config.inc.php') === FALSE )
+	{
+		die('Cannot run without a config.inc.php file. See the installation documentation.');
+	}
 
+	define('APC_RUNNING', FALSE);
 
-$body .= '<article>
-	<h1>Sections of the '.LAWS_NAME.'</h1>
-	<p>These are the sections of the '.LAWS_NAME.'.</p>
-	<ul class="level-1">
-		<li><a href="http://administrative.'.BASE_SITE_DOMAIN.'/">Administrative</a></li>
-		' . /*<!--li><a href="http://building.'.BASE_SITE_DOMAIN.'/">Building</a></li>*/ '
-		<li><a href="http://business.'.BASE_SITE_DOMAIN.'/">Business</a></li>
-		<li><a href="http://campaign.'.BASE_SITE_DOMAIN.'/">Campaign</a></li>
-		<li><a href="http://charter.'.BASE_SITE_DOMAIN.'/">Charter</a></li>
-		<li><a href="http://elections.'.BASE_SITE_DOMAIN.'/">Elections</a></li>
-		<li><a href="http://electrical.'.BASE_SITE_DOMAIN.'/">Electrical</a></li>
-		<li><a href="http://environment.'.BASE_SITE_DOMAIN.'/">Environment</a></li>
-		<li><a href="http://fire.'.BASE_SITE_DOMAIN.'/">Fire</a></li>
-		<li><a href="http://health.'.BASE_SITE_DOMAIN.'/">Health</a></li>
-		<li><a href="http://housing.'.BASE_SITE_DOMAIN.'/">Housing</a></li>
-		<li><a href="http://mechanical.'.BASE_SITE_DOMAIN.'/">Mechanical</a></li>
-		<li><a href="http://park.'.BASE_SITE_DOMAIN.'/">Park</a></li>
-		<li><a href="http://planning.'.BASE_SITE_DOMAIN.'/">Planning</a></li>
-		<li><a href="http://plumbing.'.BASE_SITE_DOMAIN.'/">Plumbing</a></li>
-		<li><a href="http://port.'.BASE_SITE_DOMAIN.'/">Port</a></li>
-		<li><a href="http://public-works.'.BASE_SITE_DOMAIN.'/">Public Works</a></li>
-		<li><a href="http://subdivision.'.BASE_SITE_DOMAIN.'/">Subdivision</a></li>
-		<li><a href="http://transportation.'.BASE_SITE_DOMAIN.'/">Transportation</a></li>
-	</ul>
-</article>';
+}
 
 /*
- * Put the shorthand $body variable into its proper place.
+ * Else if APC is running, get data from the cache.
  */
-$template->field->body = $body;
-unset($body);
+
+else
+{
+
+	/*
+	 * Attempt to load the config file constants out of APC.
+	 */
+	$result = apc_load_constants('config');
+
+	/*
+	 * If this attempt did not work.
+	 */
+	if ($result === FALSE)
+	{
+
+		/*
+		 * Load constants from the config file.
+		 */
+		if ( (include INCLUDE_PATH . '/config.inc.php') === FALSE )
+		{
+			die('Cannot run without a config.inc.php file. See the installation documentation.');
+		}
+
+		define('APC_RUNNING', TRUE);
+
+		/*
+		 * And then save them to APC.
+		 */
+		$constants = get_defined_constants(TRUE);
+		apc_define_constants('config', $constants['user']);
+
+	}
+}
 
 /*
- * Put the shorthand $sidebar variable into its proper place.
+ * Connect to the database.
  */
-$template->field->sidebar = $sidebar;
-unset($sidebar);
+try
+{
+	$db = new PDO( PDO_DSN, PDO_USERNAME, PDO_PASSWORD, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT) );
+	$api_db = new PDO( API_PDO_DSN, API_PDO_USERNAME, API_PDO_PASSWORD, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT) );
+}
 
 /*
- * Parse the template, which is a shortcut for a few steps that culminate in sending the content
- * to the browser.
+ * If we cannot connect.
  */
-$template->parse();
+catch (PDOException $e)
+{
+
+	/*
+	 * If we get error 1049, that means that no database of this name could be found. This means
+	 * that The State Decoded has not yet been installed. Redirect to the admin section.
+	 */
+	if (strpos($e->getMessage(), '[1049]') !== FALSE)
+	{
+		if (strpos($_SERVER['REQUEST_URI'], '/admin') === FALSE)
+		{
+			header('Location: /admin/');
+			exit;
+		}
+	}
+
+	/*
+	 * Else it's a generic database problem.
+	 */
+	else
+	{
+
+		/*
+		 * A specific error page has been created for database connection failures, display that.
+		 */
+		if (defined('ERROR_PAGE_DB'))
+		{
+			require($_SERVER['DOCUMENT_ROOT'] . '/' . ERROR_PAGE_DB);
+			exit();
+		}
+
+		/*
+		 * If no special error page exists, display a generic error.
+		 */
+		else
+		{
+			die(SITE_TITLE . ' is having some database trouble right now. Please check back in a few minutes.');
+		}
+
+	}
+
+}
+
+/*
+ * Prior to PHP v5.3.6, the PDO does not pass along to MySQL the DSN charset configuration option,
+ * and it must be done manually.
+ */
+if (version_compare(PHP_VERSION, '5.3.6', '<'))
+{
+	$db->exec("SET NAMES utf8");
+}
+
+/*
+ * We're going to need access to the database connection throughout the site.
+ */
+global $db;
+
+/*
+ * Include the functions that drive the site.
+ */
+require('functions.inc.php');
+
+/*
+ * Include Solarium's autoloader, for queries to Solr.
+ */
+require('Solarium/Autoloader.php');
+Solarium_Autoloader::register();
+
+/*
+ * Turn the Solr URL constant into a configuration array that we can use anywhere we need to use
+ * Solarium.
+ */
+$solr_url = parse_url(SOLR_URL);
+$GLOBALS['solr_config'] = array(
+    'adapteroptions' => array(
+        'host' => $solr_url['host'],
+        'port' => $solr_url['port'],
+        'path' => $solr_url['path'],
+    )
+);
+
+/*
+ * Include the custom functions file.
+ */
+require(CUSTOM_FUNCTIONS);
+
+/*
+ * Establish routes
+ */
+require('routes.inc.php');
+
+/*
+ * Initialize the master controller
+ */
+$mc = new MasterController();
+$mc->execute();
