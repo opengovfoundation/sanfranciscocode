@@ -162,9 +162,6 @@ $(document).ready(function () {
 			my: "bottom center"
 		}
 	})
-<<<<<<< HEAD:htdocs/js/functions.js
-	
-=======
 
     // Set the base url once for use later.
     // Note that document.location.origin is a chrome-only thing
@@ -191,7 +188,6 @@ $(document).ready(function () {
 		});
 	});
 
->>>>>>> 6c0fd3fee322635be8ad3251cce7d3816c1bc549:htdocs/themes/StateDecoded2013/static/js/vendor/functions.js
 	/* Mentions of other sections of the code. */
 	$("a.law").each(function() {
 		var section_number = $(this).text();
@@ -253,7 +249,7 @@ $(document).ready(function () {
 			content: {
 				text: 'Loading .&thinsp;.&thinsp;.',
 				ajax: {
-					url: '/api/dictionary/' + encodeURI(term),
+					url: '/api/dictionary/' + encodeURI(term) + '/',
 					type: 'GET',
 					data: { section: section_number, key: api_key },
 					dataType: 'json',
@@ -276,9 +272,9 @@ $(document).ready(function () {
 	$("#keyhelp").click(function() {
 		showHelp('keyboard');
 	});
-	
-	
-	
+
+
+
 	/* Search Autocomplete */
 	$(function() {
 	  function split( val ) {
@@ -287,7 +283,7 @@ $(document).ready(function () {
 	  function extractLast( term ) {
 		return split( term ).pop();
 	  }
-	
+
 	  $( "#q" ).autocomplete({
 		source: function( request, response ) {
 		  if(request.term[request.term.length-1]==" ") {
@@ -302,7 +298,7 @@ $(document).ready(function () {
 			  key: api_key
 			},
 			success: function( data ) {
-			  response( $.map(data.terms, function(item) { 
+			  response( $.map(data.terms, function(item) {
 				return {
 					label: item.term,
 					value: item.term
@@ -335,5 +331,5 @@ $(document).ready(function () {
 		}
 	  });
 	});
-	
+
 });
