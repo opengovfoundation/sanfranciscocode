@@ -39,7 +39,7 @@ $body = '<!-- UNCOMMENT TO DISPLAY AN INTRODUCTORY VIDEO HERE
 	<section class="homepage" role="main">
 		<div class="nest">
 			<div>
-			<section class="feature-content">
+			<section class="feature-content" id="sections-feature">
 				<hgroup>
 					<h1>Discover the ' . LAWS_NAME . '</h1>
 					<h2>The laws of ' . PLACE_NAME . ', for non-lawyers.</h2>

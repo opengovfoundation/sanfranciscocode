@@ -46,7 +46,7 @@
 			<div class="nest">
 				<ul>
 					<li>
-						<a href="/browse/" id="browse">Browse</a>
+						<a href="{{home_site_url}}#sections-feature" id="browse">Browse</a>
 					</li>
 					<li>
 						<a href="{{home_site_url}}about/" id="about">About Us</a>
