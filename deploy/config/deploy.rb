@@ -34,6 +34,10 @@ set :use_sudo, false
 
 set(:deploy_to) { "/var/www/releases/#{application}/#{site}/#{stage}" }
 
+# Delete all of the old releases please!
+set :keep_releases, 3
+after "deploy:update", "deploy:cleanup"
+
 # Don't do the normal timestamp update, as it uses Rails paths.
 set :normalize_asset_timestamps, false
 
