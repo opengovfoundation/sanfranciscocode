@@ -33,14 +33,6 @@
 					<h2>Decoded</h2>
 				</hgroup>
 			</a>
-			<section id="search">
-				<form id="search_form" method="get" action="/search/">
-					<label for="search">Search the code by keyword, phrase, or title</label>
-					<input type="search" name="q" value="" id="search" placeholder="Search the Laws">
-					<input type="submit" name="" value="Search" id="submit" class="btn btn-success">
-					<!--a class="advanced" href="#">Advanced</a-->
-				</form>
-			</section> <!-- // #search -->
 		</div> <!-- // .nest -->
 		<nav id="main_navigation" role="navigation">
 			<div class="nest">

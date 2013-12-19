@@ -49,24 +49,9 @@ $content->set('inline_css',
 		}
 	</style>');
 
-$body = '
-	<h2>Laws as JSON</h2>
-	<p><a href="code.json.zip">code.json.zip</a><br />
-	This is the basic data about every law, one JSON file per law. Fields include section, catch
-	line, text, history, and structural ancestry (i.e., title number/name and chapter number/name).
-	Note that any sections that contain colons (e.g., § 8.01-581.12:2) have an underscore in place
-	of the colon in the filename, because neither Windows nor Mac OS support colons in filenames.</p>
-
-	<h2>Laws as Plain Text</h2>
-	<p><a href="code.txt.zip">code.txt.zip</a><br />
-	This is the basic data about every law, one plain text file per law. Note that any sections that
-	contain colons (e.g., § 8.01-581.12:2) have an underscore in place of the colon in the filename,
-	because neither Windows nor Mac OS support colons in filenames.</p>
-
-	<h2>Dictionary as JSON</h2>
-	<p><a href="dictionary.json.zip">dictionary.json.zip</a><br />
-	All terms defined in the laws, with each term’s definition, the section in which it is defined,
-	and the scope (section, chapter, title, global) of that definition.</p>';
+$body = '<p>You may access downloads or API for any section of the code by visiting the
+		downloads page for that section.  You can register for the API for all sections
+		below.</p>';
 
 /*
  * Create an instance of the API class.
@@ -160,7 +145,7 @@ elseif (isset($_GET['secret']))
  */
 else
 {
-	$sidebar = '<h1>Register for the API</h1>
+	$body .= '<h2>Register for the API</h2>
 
 				<p>' . SITE_TITLE . ' has a rich application programming interface (API). To use it,
 				simply register for a key and confirm your e-mail address. You can be using it
@@ -168,9 +153,9 @@ else
 				<a href="http://statedecoded.github.io/documentation/api.html">API
 				documentation</a> for details.</p>';
 
-	$sidebar .= $api->display_form();
+	$body .= $api->display_form();
 
-	$sidebar .= '<h1>Documentation</h1>
+	$body .= '<h2>Documentation</h1>
 
 				<p>A great deal of information is available about how to use ' . SITE_TITLE .'’s
 				API and downloads, plus much more, within
