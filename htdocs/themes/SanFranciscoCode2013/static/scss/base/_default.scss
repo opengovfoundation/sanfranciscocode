@@ -124,7 +124,7 @@ textarea {
 
 #main_content {
   overflow:hidden;
-  padding: 20px 0;
+  padding: 20px 20px;
 
   @include respond-to(smartphone) {
 	padding: 0 10px;
