@@ -62,6 +62,9 @@ after "deploy:finalize_update" do
   run "rm -Rf #{release_path}/htdocs/downloads"
   run "ln -nfs #{shared_path}/downloads #{release_path}/htdocs/downloads"
   run "ln -nfs #{shared_path}/data #{release_path}/htdocs/admin/data"
+  run "chmod g+rw #{release_path}/htdocs/admin/data"
+  run "chmod g+rw #{release_path}/htdocs/sitemap.xml"
+  run "chmod g+rw #{release_path}/htdocs/.htaccess"
 end
 
 # Setup the shared folders.  Since we don't symlink these directly,
@@ -70,7 +73,7 @@ after "deploy:setup" do
   run "mkdir #{shared_path}/data"
   run "chmod g+rw #{shared_path}/data"
   run "mkdir #{shared_path}/downloads"
-  run "chmod a+rw #{shared_path}/downloads"
+  run "chmod g+rw #{shared_path}/downloads"
   run "mkdir #{shared_path}/includes"
   run "chmod g+rw #{shared_path}/includes"
 end
