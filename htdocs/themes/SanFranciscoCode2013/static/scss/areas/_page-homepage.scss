@@ -51,8 +51,8 @@
       float: left;
       margin-bottom: 20px;
       padding-right: 5%;
-      margin-right: 5%;
-      width: 50%;
+      margin-right: 0%;
+      width: 45%;
 
       @include respond-to(smartphone) {
         border-right: none;
@@ -65,9 +65,10 @@
     }
 
     &:nth-child(2) {
-      float: right;
+      float: left;
       margin-bottom: 20px;
-      width: 39%;
+      padding-left: 5%;
+      width: 45%;
 
       @include respond-to(smartphone) {
         float: none;
@@ -135,6 +136,11 @@
     	width: 30%;
     	padding-left: 10%;
   	}
+  }
+
+  .stay-updated {
+  	width: 100%;
+  	@include clearfix;
   }
 
 
