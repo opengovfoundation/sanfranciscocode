@@ -80,6 +80,16 @@ $content->set('body',
 					you’ll love our API!</p>
 				</article>
 
+				<article class="stay-updated">
+					<h2>Stay Updated</h2>
+					<p>
+						<a href="http://eepurl.com/FUc0b">Click here to join our mailing list</a>
+					</p>
+					<p>
+						Want to open your city or state? <a href="mailto:sayhello@opengovfoundation.org?Subject=Help%20Open%20My%20City%20or%20State">Drop us a line!</a>
+					</p>
+				</article>
+
 			</section> <!-- // .secondary-content -->
 
 		</div> <!-- // .nest -->
