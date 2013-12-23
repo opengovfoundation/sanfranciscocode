@@ -34,6 +34,10 @@ set :use_sudo, false
 
 set(:deploy_to) { "/var/www/releases/#{application}/#{site}/#{stage}" }
 
+# Delete all of the old releases please!
+set :keep_releases, 3
+after "deploy:update", "deploy:cleanup"
+
 # Don't do the normal timestamp update, as it uses Rails paths.
 set :normalize_asset_timestamps, false
 
@@ -54,6 +58,7 @@ set :shared_children, []
 after "deploy:finalize_update" do
   run "ln -nfs #{shared_path}/includes/config.inc.php #{release_path}/includes/config.inc.php"
   run "ln -nfs #{shared_path}/data #{release_path}/htdocs/admin/xml"
+  run "rm -Rf #{release_path}/htdocs/downloads"
   run "ln -nfs #{shared_path}/downloads #{release_path}/htdocs/downloads"
 end
 
