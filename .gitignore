@@ -4,6 +4,7 @@ Vagrantfile
 htdocs/admin/.htpasswd
 htdocs/admin/xml/
 htdocs/admin/import-data/
+htdocs/.sass-cache/
 includes/class.Virginia.inc.php
 includes/config.inc.php
 htdocs/.sass-cache/
