@@ -24,15 +24,15 @@
   }
 
   hgroup#place_logo {
-    @include background-image(image-url("faux_seal.png"));
+    @include background-image(image-url("flag.png"));
     background-repeat: no-repeat;
     background-position: top left;
     background-size: auto;
     color: $white;
     -webkit-font-smoothing: antialiased;
     font-smoothing: antialiased;
-    height: 117px;
-    padding-left: 125px;
+    height: 113px;
+    padding-left: 195px;
     position: absolute;
       left: 2.5em;
       top: 70px;
@@ -40,18 +40,18 @@
 
     @include respond-to(smartphone) {
       background-position: 0 10px;
-      background-size: 88px 88px; //~75%
+      background-size: 132px 88px; //~75%
       clear: both;
       margin: 0;
-      padding: 10px 0 0 100px;
+      padding: 10px 0 0 144px;
       position: absolute;
         top: 0;
     }
 
     @include respond-to(tablet) {
-      background-size: 88px 88px; //~75%
+      background-size: 132px 88px; //~75%
       float: left;
-      padding-left: 100px;
+      padding-left: 144px;
       position: relative;
         top: 15px;
         left: 0;
@@ -77,14 +77,14 @@
       margin: 0;
 
       @include respond-to(smartphone) {
-        font-size: 50px;
-        line-height: 60px;
+        font-size: 28px;
+        line-height: 30px;
         margin: 0;
       }
 
       @include respond-to(tablet) {
-        font-size: 50px;
-        line-height: 60px;
+        font-size: 28px;
+        line-height: 30px;
         margin: 0;
       }
 
@@ -104,7 +104,8 @@
       text-transform: uppercase;
 
       @include respond-to(smartphone) {
-        font-size: 125%;
+        font-size: 105%;
+        letter-spacing: 0.25em;
         margin: 0;
       }
 
@@ -275,9 +276,9 @@
       }
 
       hgroup#place_logo {
-        background-size: 50px 50px;
+        background-size: 75px 50px;
         height: 50px;
-        padding-left: 0;
+        padding-left: 80px;
         position: absolute;
           top: 8px;
           left: 40px;
@@ -285,14 +286,14 @@
         h1 {
           font-size: 35px;
           line-height: 35px;
-          margin: 0 0 0 55px;
+          margin: 0;
         } // h1
 
         h2 {
           font-size: 12px;
           font-weight: 400;
           letter-spacing: 0.5em;
-          margin: -5px 0 0 120px;
+          margin: -5px 0 0 65px;
         }
       } // hgroup#place_logo
 
@@ -316,7 +317,7 @@
 
       nav#main_navigation {
         background-color: transparent;
-        margin-left: 250px;
+        margin-left: 300px;
         padding: 0;
         position: relative;
         top: -5px;
