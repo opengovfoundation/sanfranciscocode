@@ -18,6 +18,13 @@ require_once(INCLUDE_PATH . '/disqusapi/disqusapi.php');
 
 class CommentController extends BaseController
 {
+	public $disqus;
+
+	public function __construct()
+	{
+		parent::__construct();
+		$this->disqus = new DisqusAPI(DISQUS_API_SECRET);
+	}
 
 	public function handle($args)
 	{
@@ -30,52 +37,13 @@ class CommentController extends BaseController
 
 		$content->set('body', '<article id="comments">');
 
-
-		$disqus = new DisqusAPI(DISQUS_API_SECRET);
-
-		/*
-		 * Get posts.
-		 */
-		// TODO: Handle pagination.
-		$posts = $disqus->posts->listPopular(
-			array(
-					'forum' => 'sanfranciscocode',
-					'interval' => '90d',
-					'limit' => 25
-			)
-		);
-
-		/*
-		 * We need to get the threads for those posts, since Disqus
-		 * does not include that data.
-		 */
-		// TODO: Handle more than 100 using pagination.
-
-		$thread_ids = array();
-		foreach($posts as $post)
+		$page = 1;
+		if(isset($_GET['page']))
 		{
-			$thread_ids[] = $post->thread;
+			$page = $_GET['page'];
 		}
 
-		$temp_threads = $disqus->threads->list(
-			array(
-				'forum' => 'sanfranciscocode',
-				'thread' => $thread_ids,
-				'limit' => 100
-			)
-		);
-		$threads = array();
-
-		/*
-		 * Shuffle those into a hash.
-		 */
-
-		foreach($temp_threads as $thread)
-		{
-			$threads[$thread->id] = $thread;
-		}
-		unset($temp_threads);
-
+		$posts = $this->get_posts($page);
 
 		/*
 		 * Loop over posts.
@@ -101,18 +69,18 @@ class CommentController extends BaseController
 								<header>
 									<div class="post-title">
 										<span class="title">
-											<a href="'. $threads[$post->thread]->link . '#disqus_thread">' .
-												$threads[$post->thread]->clean_title . '</a>
+											<a href="'. $post->thread->link . '#disqus_thread">' .
+												$post->thread->clean_title . '</a>
 										</span>
 									</div>
 									<div class="post-credits">
 										<span class="post-byline">
 											<span class="author publisher-anchor-color">
-												<a href="' . $threads[$post->thread]->link. '#comment-' . $post->id . '">' . $post->author->name . '</a>
+												<a href="' . $post->thread->link. '#comment-' . $post->id . '">' . $post->author->name . '</a>
 											</span>
 											<span class="post-meta">
 												<span class="bullet time-ago-bullet" aria-hidden="true">•</span>
-												<a class="time-ago" href="' . $threads[$post->thread]->link. '#comment-' . $post->id . '" title="' .
+												<a class="time-ago" href="' . $post->thread->link. '#comment-' . $post->id . '" title="' .
 													$post->date . '">' . date('g:ia M j Y', strtotime($post->createdAt)) . '</a>
 											</span>
 										</span>
@@ -152,10 +120,100 @@ class CommentController extends BaseController
 			}
 			$content->append('body', '</ul>');
 		}
+		else {
+			$content->append('No further posts.');
+		}
+
+		$nav = '';
+
+		if($page > 1)
+		{
+			$nav .= '<li><a href="?page=' . ($page - 1) . '"><i class="icon icon-angle-left"></i> Older</a></li>';
+		}
+		// We have to fetch the next page to know if there *is* a next page.
+
+		if(count($this->get_posts($page + 1)) > 0)
+		{
+			$nav .= '<li><a href="?page=' . ($page + 1) . '">Newer <i class="icon icon-angle-right"></i></a></li>';
+		}
+
+		if(strlen($nav) > 0)
+		{
+			$content->append('body', '<menu class="comment-nav"><ul>' .  $nav . '</ul></menu>');
+		}
 
 		$content->append('body', '</article>');
 
 		$this->render($content);
+	}
+
+	public function get_posts($page = 1)
+	{
+		$per_page = 25;
+
+		$offset = ($page - 1) * $per_page;
+
+		/*
+		 * Get posts.
+		 */
+		$post_args = array(
+			'forum' => DISQUS_SHORTNAME,
+			'interval' => '90d',
+			'limit' => $per_page + $offset, // This is really weird, @Disqus.
+			'offset' => $offset
+		);
+
+		$posts = $this->disqus->posts->listPopular($post_args);
+
+		if(is_array($posts) && count($posts) > 0)
+		{
+			/*
+			 * We need to get the threads for those posts, since Disqus
+			 * does not include that data.
+			 */
+			// TODO: Handle more than 100 using pagination.
+
+			$thread_ids = array();
+			foreach($posts as $post)
+			{
+				$thread_ids[] = $post->thread;
+			}
+
+			$thread_args = array(
+				'forum' => DISQUS_SHORTNAME,
+				'thread' => $thread_ids,
+				'limit' => 100
+			);
+
+			$temp_threads = $this->disqus->threads->list($thread_args);
+			$threads = array();
+
+			/*
+			 * Shuffle those into a hash.
+			 */
+
+			foreach($temp_threads as $thread)
+			{
+				$threads[$thread->id] = $thread;
+			}
+			unset($temp_threads);
+
+			/*
+			 * Re-set threads.
+			 */
+			foreach($posts as $key=>$post)
+			{
+				$post->thread = $threads[$post->thread];
+				$posts[$key] = $post;
+			}
+
+			return $posts;
+		}
+		else
+		{
+			return array();
+		}
+
 	}
 
 }
