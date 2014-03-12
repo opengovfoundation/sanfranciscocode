@@ -27,6 +27,8 @@ Router::addRoute('^/search/?(.*)', 'search.php');
 // Browse
 Router::addRoute('^/browse/?(.*)', array('StructureController', 'handle'));
 
+// Disqus Comments
+Router::addRoute('^/comments/?(.*)', array('CommentController', 'handle'));
 
 // New activation
 Router::addRoute('^/api-key/activate/(?P<secret>.*)', array('ApiKeyController', 'activateKey'));
