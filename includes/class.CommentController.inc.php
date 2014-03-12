@@ -19,6 +19,7 @@ require_once(INCLUDE_PATH . '/disqusapi/disqusapi.php');
 class CommentController extends BaseController
 {
 	public $disqus;
+	public $per_page = 25;
 
 	public function __construct()
 	{
@@ -51,7 +52,8 @@ class CommentController extends BaseController
 
 		if(is_array($posts) && count($posts))
 		{
-			$content->append('body', '<ol class="post-list" id="post-list">');
+			$content->append('body', '<ol class="post-list" id="post-list" start="' .
+				($this->get_offset($page) + 1) .'">');
 
 			foreach($posts as $post)
 			{
@@ -147,11 +149,15 @@ class CommentController extends BaseController
 		$this->render($content);
 	}
 
+	public function get_offset($page)
+	{
+		return ($page - 1) * $this->per_page;
+	}
+
+
 	public function get_posts($page = 1)
 	{
-		$per_page = 25;
-
-		$offset = ($page - 1) * $per_page;
+		$offset = $this->get_offset($page);
 
 		/*
 		 * Get posts.
@@ -159,7 +165,7 @@ class CommentController extends BaseController
 		$post_args = array(
 			'forum' => DISQUS_SHORTNAME,
 			'interval' => '90d',
-			'limit' => $per_page + $offset, // This is really weird, @Disqus.
+			'limit' => $this->per_page + $offset, // This is really weird, @Disqus.
 			'offset' => $offset
 		);
 
