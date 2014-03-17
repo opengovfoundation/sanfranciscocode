@@ -33,11 +33,8 @@ class ParserController
 		/*
 		 * Connect to the database.
 		 */
-		$this->db = new PDO( PDO_DSN, PDO_USERNAME, PDO_PASSWORD, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT) );
-		if ($this->db === FALSE)
-		{
-			die('Could not connect to the database.');
-		}
+		global $db;
+		$this->db = $db;
 
 		/*
 		 * Prior to PHP v5.3.6, the PDO does not pass along to MySQL the DSN charset configuration
@@ -996,9 +993,15 @@ class ParserController
 
 		$this->logger->message('Creating symlinks', 4);
 
-		if($this->edition['current'] == '1')
+		if ($this->edition['current'] == '1')
 		{
-			exec('cd ' . WEB_ROOT . '/downloads/; rm current ; ln -s ' . $this->edition['slug'] . ' current');
+
+			$result = exec('cd ' . WEB_ROOT . '/downloads/; rm current; ln -s ' . $this->edition['slug'] . ' current');
+			if ($result != 0)
+			{
+				$this->logger->message('Could not create “current” symlink in /downloads/', 10);
+			}
+
 		}
 
 		$this->logger->message('Done generating exports', 5);
@@ -1521,9 +1524,8 @@ class ParserController
 		/*
 		 * Create a new XML file, using the sitemap.xml schema.
 		 */
-		$xml = new SimpleXMLElement('<xml/>');
-		$urlset = $xml->addChild('urlset');
-		$urlset->addAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+
+		$xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" />');
 
 		/*
 		 * Create a new instance of the class that handles information about individual laws.
@@ -1557,7 +1559,7 @@ class ParserController
 			/*
 			 * Add a record of this law to the XML.
 			 */
-			$url = $urlset->addChild('url');
+			$url = $xml->addChild('url');
 			$url->addchild('loc', $law->url);
 			$url->addchild('changefreq', 'monthly');
 
@@ -1807,7 +1809,7 @@ class ParserController
 			}
 
 		}
-		
+
 		/*
 		 * Make sure that php-xml is installed.
 		 */

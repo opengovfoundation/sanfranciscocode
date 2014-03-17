@@ -99,6 +99,12 @@ define('PDO_USERNAME', 'username');
 define('PDO_PASSWORD', 'password');
 
 /*
+ * The username and password required to use the administrative backend (the importer, etc.)
+ */
+define('ADMIN_USERNAME', '');
+define('ADMIN_PASSWORD', '');
+
+/*
  * Specify the structural identifier ancestry for the unit of the code that contains definitions of
  * terms that are used throughout the code, and thus should have a global scope. Separate each
  * identifier with a comma. If all global definitions are found in Title 15A, Part BD, Chapter 16.2,
@@ -151,6 +157,12 @@ define('RECORD_VIEWS', TRUE);
  */
 define('SOLR_URL', 'http://localhost:8080/solr/statedecoded/');
 
+/*
+ * The HTML to be displayed on individual law pages that will allow them to be shared via social
+ * services. Twitter and Facebook are included by default.
+ */
+// define('SOCIAL_LINKS', '<div id="twitter"><a href="https://twitter.com/share" class="twitter-share-button">Tweet</a><script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?\'http\':\'https\';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+\'://platform.twitter.com/widgets.js\';fjs.parentNode.insertBefore(js,fjs);}}(document, \'script\', \'twitter-wjs\');</script></div><div id="facebook"><script src="http://connect.facebook.net/en_US/all.js#xfbml=1"></script><fb:like layout="button_count" show_faces="false" width="100" action="recommend"></fb:like></div>');
+
 /**
  * API Keys
  */
@@ -160,6 +172,12 @@ define('SOLR_URL', 'http://localhost:8080/solr/statedecoded/');
  * at the time that the parser is run.)
  */
 define('API_KEY', '');
+
+/*
+ * The version of The State Decoded that is installed. (This is populated automatically by the
+ * upgrade script, and should not be modified manually.)
+ */
+define('VERSION', '0.81');
 
 /*
  * If you want to enable Disqus <http://www.disqus.com/> commenting for every law, register for

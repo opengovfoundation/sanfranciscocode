@@ -40,6 +40,7 @@ class Law
 		 */
 		if (!isset($this->config) || !is_object($this->config) )
 		{
+			$this->config = new StdClass();
 			$this->config->get_all = TRUE;
 		}
 
@@ -229,6 +230,10 @@ class Law
 				/*
 				 * Append this section.
 				 */
+				if(!isset($this->text))
+				{
+					$this->text = new StdClass();
+				}
 				$this->text->$i = $tmp;
 				$i++;
 
@@ -376,7 +381,7 @@ class Law
 			 */
 			if (isset($this->metadata->court_decisions))
 			{
-				$this->court_decisions = unserialize($this->metadata->court_decisions);
+				$this->court_decisions = $this->metadata->court_decisions;
 			}
 
 			/*
@@ -471,6 +476,11 @@ class Law
 		/*
 		 * List the URLs for the textual formats in which this section is available.
 		 */
+		if(!isset($this->formats))
+		{
+			$this->formats = new StdClass();
+		}
+
 		$this->formats->txt = substr($this->url, 0, -1) . '.txt';
 		$this->formats->json = substr($this->url, 0, -1) . '.json';
 		$this->formats->json = substr($this->url, 0, -1) . '.xml';
@@ -832,14 +842,20 @@ class Law
 		foreach($metadata as $field)
 		{
 
-			$field->meta_value = stripslashes($field->meta_value);
-
 			/*
 			 * If unserializing this value works, then we've got serialized data here.
 			 */
 			if (@unserialize($row->meta_value) !== FALSE)
 			{
 				$field->meta_value = unserialize($field->meta_value);
+			}
+
+			/*
+			 * If JSON decoding this value works, then we've got JSON data here.
+			 */
+			if (@json_decode($row->meta_value) !== FALSE)
+			{
+				$field->meta_value = json_decode($field->meta_value);
 			}
 
 			/*
@@ -854,9 +870,10 @@ class Law
 				$field->meta_value = FALSE;
 			}
 
-			$rotated->{stripslashes($field->meta_key)} = $field->meta_value;
+			$rotated->{$field->meta_key} = $field->meta_value;
 
 		}
+
 		return $rotated;
 
 	}

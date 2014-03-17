@@ -204,7 +204,7 @@ class State
 			$this->decisions->{$i}->case_number = $opinion->case_number;
 			$this->decisions->{$i}->citation = $opinion->citation;
 			$this->decisions->{$i}->date = date('Y-m-d', strtotime($opinion->date_filed));
-			$this->decisions->{$i}->url = $opinion->download_url;
+			$this->decisions->{$i}->url = 'https://www.courtlistener.com' . $opinion->absolute_url;
 			$this->decisions->{$i}->abstract = ' . . . ' . array_shift(explode("\n", wordwrap(html_entity_decode(strip_tags($opinion->snippet)), 100))) . ' . . . ';
 
 			if ($opinion->court == 'Court of Appeals of Virginia')
@@ -228,7 +228,7 @@ class State
 		$law = new Law();
 		$law->section_id = $this->section_id;
 		$law->metadata->{0}->key = 'court_decisions';
-		$law->metadata->{0}->value = serialize($this->decisions);
+		$law->metadata->{0}->value = json_encode($this->decisions);
 		$law->store_metadata();
 
 		return TRUE;
@@ -491,6 +491,11 @@ class Parser
 		foreach ($this->section->structure->unit as $unit)
 		{
 			$level = (string) $unit['level'];
+			if(!isset($this->code->structure->{$level}))
+			{
+				$this->code->structure->{$level} = new stdClass();
+			}
+
 			$this->code->structure->{$level}->name = (string) $unit;
 			$this->code->structure->{$level}->label = (string) $unit['label'];
 			$this->code->structure->{$level}->level = (string) $unit['level'];
@@ -512,6 +517,10 @@ class Parser
 			 */
 			if (count($section) === 0)
 			{
+				if(!isset($this->code->section->{$this->i}))
+				{
+					$this->code->section->{$this->i} = new stdClass();
+				}
 				$this->code->section->{$this->i}->text = trim((string) $section);
 				$this->code->text = trim((string) $section);
 				break;
@@ -522,6 +531,10 @@ class Parser
 			 */
 			foreach ($section as $subsection)
 			{
+				if(!isset($this->code->section->{$this->i}))
+				{
+					$this->code->section->{$this->i} = new stdClass();
+				}
 
 				$this->code->section->{$this->i}->text = trim((string) $subsection);
 
@@ -538,6 +551,11 @@ class Parser
 
 				$this->code->section->{$this->i}->prefix = (string) $subsection['prefix'];
 				$this->prefix_hierarchy[] = (string) $subsection['prefix'];
+
+				if(!isset($this->code->section->{$this->i}->prefix_hierarchy))
+				{
+					$this->code->section->{$this->i}->prefix_hierarchy = new stdClass();
+				}
 				$this->code->section->{$this->i}->prefix_hierarchy->{0} = (string) $subsection['prefix'];
 
 				/*
@@ -610,11 +628,12 @@ class Parser
 	{
 
 		$sql = 'DELETE FROM permalinks';
-		$result = $this->db->exec($sql);
+		$statement = $this->db->prepare($sql);
+
+		$result = $statement->execute();
 		if ($result === FALSE)
 		{
-			echo '<p>'.$sql.'</p>';
-			echo '<p>'.$result->getMessage().'</p>';
+			echo '<p>Query failed: '.$sql.'</p>';
 			return;
 		}
 
@@ -765,7 +784,7 @@ class Parser
 				if(defined('LAW_LONG_URLS') && LAW_LONG_URLS === TRUE)
 				{
 					$law_token = $token . '/' . $law['section_number'];
-					$law_url = $url . $law['section_number'];
+					$law_url = $url . $law['section_number'] . '/';
 				}
 				else
 				{
@@ -857,6 +876,11 @@ class Parser
 			/*
 			 * Store this subsection's data in our code object.
 			 */
+			if(!isset($this->code->section->{$this->i}))
+			{
+				$this->code->section->{$this->i} = new stdClass();
+			}
+
 			$this->code->section->{$this->i}->text = (string) $subsection;
 			if (!empty($subsection['type']))
 			{
@@ -864,6 +888,7 @@ class Parser
 			}
 			$this->code->section->{$this->i}->prefix = (string) $subsection['prefix'];
 			$this->prefix_hierarchy[] = (string) $subsection['prefix'];
+
 			$this->code->section->{$this->i}->prefix_hierarchy = (object) $this->prefix_hierarchy;
 
 			/*
@@ -1247,10 +1272,14 @@ class Parser
 				);
 				$find_scope->label = $dictionary->scope;
 				$find_scope->structure_id = $dictionary->structure_id;
-				$dictionary->structure_id = $find_scope->find_structure_parent();
-				if ($dictionary->structure_id === FALSE)
+
+				if($dictionary->structure_id)
 				{
-					unset($dictionary->structure_id);
+					$dictionary->structure_id = $find_scope->find_structure_parent();
+					if ($dictionary->structure_id == FALSE)
+					{
+						unset($dictionary->structure_id);
+					}
 				}
 			}
 

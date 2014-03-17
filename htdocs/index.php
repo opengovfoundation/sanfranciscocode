@@ -15,6 +15,14 @@
  */
 
 /*
+ * Make sure that mod_env is installed, as it must be.
+ */
+if (!isset($_SERVER['HTTP_MOD_ENV']))
+{
+	die('The State Decoded cannot run without Apache’s mod_env installed.');
+}
+
+/*
  * If we have not defined the include path yet, then try to do so automatically. Once we have
  * automatically defined the include path, we store it in .htaccess, where it becomes available
  * within the scope of $_SERVER.
@@ -154,9 +162,17 @@ else
 	$result = apc_load_constants('config');
 
 	/*
-	 * If this attempt did not work.
+	 * If loading from APC worked, just set the include path.
 	 */
-	if ($result === FALSE)
+	if ($result == TRUE)
+	{
+		set_include_path(get_include_path() . PATH_SEPARATOR . INCLUDE_PATH);
+	}
+
+	/*
+	 * If we couldn't load the constants from APC.
+	 */
+	else
 	{
 
 		/*
@@ -176,15 +192,21 @@ else
 		apc_define_constants('config', $constants['user']);
 
 	}
+
 }
+
+/*
+ * Include the functions that drive the site.
+ */
+require('functions.inc.php');
 
 /*
  * Connect to the database.
  */
 try
 {
-	$db = new PDO( PDO_DSN, PDO_USERNAME, PDO_PASSWORD, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT) );
-	$api_db = new PDO( API_PDO_DSN, API_PDO_USERNAME, API_PDO_PASSWORD, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT) );
+	$db = new Database( PDO_DSN, PDO_USERNAME, PDO_PASSWORD, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT) );
+	$api_db = new Database( API_PDO_DSN, API_PDO_USERNAME, API_PDO_PASSWORD, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT) );
 }
 
 /*
@@ -246,11 +268,6 @@ if (version_compare(PHP_VERSION, '5.3.6', '<'))
  * We're going to need access to the database connection throughout the site.
  */
 global $db;
-
-/*
- * Include the functions that drive the site.
- */
-require('functions.inc.php');
 
 
 /*

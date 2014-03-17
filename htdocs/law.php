@@ -255,7 +255,18 @@ if (defined('DISQUS_SHORTNAME') === TRUE)
 }
 
 /*
- * General info
+ * Display links to share this law via social services.
+ */
+if (defined('SOCIAL_LINKS') == TRUE)
+{
+	$sidebar .= '<section class="info-box" id="social">
+				<h1>Share</h1>
+				' . SOCIAL_LINKS . '
+			</section>';
+}
+
+/*
+ * Reminder to check source materials.
  */
 $sidebar .= '<section class="info-box" id="elsewhere">
 				<h1>Trust, But Verify</h1>
@@ -313,6 +324,12 @@ if ( isset($law->court_decisions) && ($law->court_decisions != FALSE) )
 	}
 
 	$sidebar .= '</ul>
+	
+				<p><small>Court opinions are provided by <a
+				href="http://www.courtlistener.com/">CourtListener</a>, which is
+				developed by the <a href="http://freelawproject.org/">Free Law
+				Project</a>.</small></p>
+				
 			</section>';
 
 }
