@@ -301,6 +301,13 @@ if ($children !== FALSE)
 }
 
 
+$body .= '</p>';
+
+if(isset($struct->metadata->text))
+{
+	$body .= '<p>' . $struct->metadata->text . '</p>';
+}
+
 /*
  * Reset counter
  */
@@ -317,7 +324,7 @@ $laws = $struct->list_laws();
 if ($laws !== FALSE)
 {
 
-	$body .= ' It’s comprised of the following ' . count((array) $laws) . ' sections.</p>';
+//	$body .= ' It’s comprised of the following ' . count((array) $laws) . ' sections.</p>';
 	$body .= '<dl class="title-list laws">';
 
 	foreach ($laws as $law)
@@ -340,6 +347,14 @@ if ($laws !== FALSE)
 
 	}
 	$body .= '</dl>';
+}
+
+if(isset($struct->metadata->history))
+{
+	$body .= '<section id="history">
+				<h2>History</h2>
+				<p>'.$struct->metadata->history.'</p>
+			</section>';
 }
 
 /*
