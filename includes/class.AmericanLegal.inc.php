@@ -36,6 +36,11 @@ class Parser
 	public $structure_labels;
 
 	public $section_count = 1;
+	public $structure_depth = 1;
+
+	//     Patterns:              | type of section                     | section number                    (opt ' - section number')       |      | hyphen | catch line
+	public $section_regex = '/^\[?(?P<type>SEC(TION|S\.|\.)|APPENDIX)\s+(?P<number>[0-9A-Z]+[0-9A-Za-z\.\-]*(.?\s-\s[0-9]+[0-9A-Za-z\.\-]*)?)\.?\s*(?:-\s*)?(?P<catch_line>.*?)\.?\]?$/i';
+
 	/*
 	 * Count the structures and appendices statically
 	 * so this will persist across instances.
@@ -148,7 +153,7 @@ class Parser
 					 * Send this object back, out of the iterator.
 					 */
 
-					//print 'Importing ' . $filename . '<br>';
+					print 'Importing ' . $filename . '<br>';
 					return $this->chapter;
 				}
 				else {
@@ -219,96 +224,145 @@ class Parser
 		 * AM Legal gives a chapter at a time, which we break up
 		 * and parse.
 		 */
-
 		$structures = array();
 
 		/*
 		 * Get the base chapter.
 		 */
-		$struct = new stdClass();
-
 		$chapter_name = (string) $this->chapter->REFERENCE->TITLE;
-		if(preg_match('/^CHAPTER\s+(?P<number>[A-Za-z0-9]+)(:|.)\s*(?P<name>.*?)$/', $chapter_name, $chapter_parts))
-		{
-			$struct->name = $chapter_parts['name'];
-			$struct->identifier = $chapter_parts['number'];
-			$struct->order_by = str_pad($chapter_parts['number'], 4, '0', STR_PAD_LEFT);
-		}
-		elseif(preg_match('/^APPENDICES:\s+(?P<name>.*?)$/', $chapter_name, $chapter_parts))
-		{
-			$struct->name = $chapter_parts['name'];
-			// Make up an identifier.
-			// Right now, there's only one!
-			//$struct->identifier = 'A' . self::$appendix_count;
-			$struct->identifier = 'appendix';
-			// Put these at the end.
-			$struct->order_by = '1' . str_pad(self::$appendix_count, 3, '0', STR_PAD_LEFT);
 
-			self::$appendix_count++;
-		}
-
-		$struct->label = 'Chapter';
-		$struct->level = 1;
-
-		$structures[] = $struct;
+		$structure = $this->parse_structure($chapter_name);
+		$structures[] = $structure;
 
 		/*
 		 * The real chapter starts at the first level.
 		 */
 		$chapter = $this->chapter->LEVEL;
 
-		foreach($chapter->LEVEL as $level)
-		{
-			$attributes = $level->attributes();
-			switch($attributes['style-name'])
-			{
-				// TODO: There's some useful Info in here we should store, such as explanations.
-				case 'Normal Level' :
-					break;
-
-				/*
-				 * The main content.
-				 */
-				case 'Article' :
-					/*
-					 * There's some strange nesting that happens here, that isn't actually used.
-					 * It goes ARTICLE (1) -> SUBARTICLE (2) -> SUBCHAPTER (3) -> SECTIONS (4)
-					 * We only care about Sections.
-					 */
-					// NOTE: Is this San Francisco specific?  Looks like it might be.
-
-					/*            (1)    (2)    (3)    (4)   */
-					$sections = $level->LEVEL->LEVEL->LEVEL;
-					break;
-			}
-		}
+		/*
+		 * The first child LEVEL we encounter is actually the table of contents, so we skip it.
+		 */
+		unset($chapter->LEVEL[0]);
 
 		/*
-		 * We must handle multiple sections per file.
+		 * There are multiple sections per file.
 		 */
 		$this->sections = array();
 		$this->section_count = 1;
-		foreach($sections as $section)
-		{
-			if(isset($section->LEVEL))
-			{
-				$attributes = $section->LEVEL->attributes();
 
-				if(isset($attributes['style-name']) &&
-					(string) $attributes['style-name'] === 'Section-NewOrd')
-				{
-					/*
-					 * This is just another table of contents,
-					 * so skip to the next section.
-					 */
-					//TODO: get any metadata here.
-					continue;
-				}
+		/*
+		 * Check to see if we have another layer of nesting
+		 */
+		if(count($chapter->xpath(".//LEVEL[@style-name='Article']/RECORD/HEADING")))
+		{
+			foreach($chapter->xpath(".//LEVEL[@style-name='Article']") as $article)
+			{
+				$this->structure_depth++;
+
+				$structure = $this->parse_structure( (string) $article->RECORD->HEADING );
+				$structures[] = $structure;
+
+				$sections = $article->xpath(".//LEVEL[@style-name='Section']");
+				$this->parse_sections($sections, $structures);
+
+				$this->structure_depth--;
+				array_pop($structures);
 			}
-			$this->sections[] = $this->parse_section($section, $structures);
+		}
+		else {
+			$sections = $chapter->xpath("//LEVEL[@style-name='Section']");
+			$this->parse_sections($sections, $structures);
 		}
 
 		return TRUE;
+	}
+
+	public function parse_structure($chapter_name)
+	{
+		$structure = new stdClass();
+
+		if(preg_match('/^(?P<type>CHAPTER|ARTICLE)\s+(?P<number>[A-Za-z0-9]+)(:|.)\s*(?P<name>.*?)$/', $chapter_name, $chapter_parts))
+		{
+			$structure->name = $chapter_parts['name'];
+			$structure->identifier = $chapter_parts['number'];
+			$structure->order_by = str_pad($chapter_parts['number'], 4, '0', STR_PAD_LEFT);
+			$structure->label = ucwords(strtolower($chapter_parts['type']));
+		}
+		elseif(preg_match('/^APPENDICES:\s+(?P<name>.*?)$/', $chapter_name, $chapter_parts))
+		{
+			$structure->name = $chapter_parts['name'];
+			// Make up an identifier.
+			// Right now, there's only one!
+			//$structure->identifier = 'A' . self::$appendix_count;
+			$structure->identifier = 'appendix';
+			// Put these at the end.
+			$structure->order_by = '1' . str_pad(self::$appendix_count, 3, '0', STR_PAD_LEFT);
+			$structure->label = 'Appendix';
+
+			self::$appendix_count++;
+		}
+
+		$structure->level = $this->structure_depth;
+
+		return $structure;
+	}
+
+	public function parse_sections($sections, $structures)
+	{
+		foreach($sections as $section)
+		{
+			/*
+			 * Check for subsections nested with this section.
+			 */
+			// TODO: Handle nesting appropriately!
+			if($subsections = $section->xpath(".//LEVEL[@style-name='SubSection']"))
+			{
+				$this->structure_depth++;
+
+				/*
+				 * Parse the section anyway, but make it a structure.
+				 */
+				$temp_structure = $this->parse_section($section, $structures);
+
+				$structure = new stdClass();
+				$structure->name = $temp_structure->catch_line;
+				$structure->identifier = $temp_structure->section_number;
+				$structure->label = 'Section';
+				$structure->order_by = $temp_structure->order_by;
+				$structure->level = $this->structure_depth;
+				$structure->metadata = new stdClass();
+				$structure->metadata->text = $temp_structure->text;
+
+				if(isset($temp_structure->history))
+				{
+					$structure->metadata->history = $temp_structure->history;
+				}
+
+				$structures[] = $structure;
+
+				foreach($subsections as $subsection)
+				{
+					$new_section = $this->parse_section($subsection, $structures);
+
+					if($new_section)
+					{
+						$this->sections[] = $new_section;
+					}
+				}
+
+				$this->structure_depth--;
+				array_pop($structures);
+			}
+			else
+			{
+				$new_section = $this->parse_section($section, $structures);
+
+				if($new_section)
+				{
+					$this->sections[] = $new_section;
+				}
+			}
+		}
 	}
 
 	public function parse_section($section, $structures)
@@ -322,8 +376,7 @@ class Parser
 		 */
 		$section_title = (string) $section->RECORD->HEADING;
 
-		//               | type of section          | section number             (opt ' - section number')    |   | hyphen | catch line
-		preg_match('/^\[?(?P<type>SECS?\.|APPENDIX)\s+(?P<number>[0-9]+[0-9A-Za-z\.\-]*(.?\s-\s[0-9]+[0-9A-Za-z\.\-]*)?\.?)\s*(?:-\s*)?(?P<catch_line>.*?)\.?\]?$/', $section_title, $section_parts);
+		preg_match($this->section_regex, $section_title, $section_parts);
 
 		$code->section_number = $section_parts['number'];
 
@@ -348,78 +401,112 @@ class Parser
 		$code->section = new stdClass();
 		$i = 0;
 
-		foreach($section->LEVEL->RECORD as $subsection) {
+		foreach($section->LEVEL->RECORD as $paragraph) {
 
-			$attributes = $subsection->PARA->attributes();
+			$attributes = $paragraph->PARA->attributes();
 
-			/*
-			 * Handle history.
-			 */
-			if(isset($attributes['style-name']) &&
-				(string) $attributes['style-name'] === 'History')
+			$type = '';
+
+			if(isset($attributes['style-name']))
 			{
-				// TODO: Clean up tags.
-				$code->history = $subsection->PARA->asXML();
+				$type = (string) $attributes['style-name'];
 			}
 
-			/*
-			 * Handle repealed.
-			 */
-			elseif(isset($attributes['style-name']) &&
-				(string) $attributes['style-name'] === 'Section-Deleted')
+			switch($type)
 			{
-				$code->catch_line = '[REPEALED]';
-				$code->metadata['repealed'] = 'y';
+				case 'History' :
+					$code->history = $this->clean_text($paragraph->PARA->asXML());
+					break;
+
+				case 'Section-Deleted' :
+					$code->catch_line = '[REPEALED]';
+					$code->metadata['repealed'] = 'y';
+					break;
+
+				case 'EdNote' :
+					$code->metadata['notes'] = $this->clean_text($paragraph->PARA->asXML());
+					break;
+
+				default :
+					$code->section->{$i} = new stdClass();
+
+					$section_text = $this->clean_text($paragraph->PARA->asXML());
+
+					$code->text .= $section_text . "\r\r";
+					/*
+					 * Get the section identifier if it exists.
+					 */
+
+					if(preg_match("/^<p>\s*\((?P<letter>[a-zA-Z0-9]{1,3})\) /", $section_text, $paragraph_id))
+					{
+						$code->section->{$i}->prefix = $paragraph_id['letter'];
+						/*
+						 * TODO: !IMPORTANT Deal with hierarchy.  This is just a hack.
+						 */
+						$code->section->{$i}->prefix_hierarchy = array($paragraph_id['letter']);
+
+						/*
+						 * Remove the section letter from the section.
+						 */
+						$section_text = str_replace($paragraph_id[0], '<p>', $section_text);
+					}
+					// TODO: Clean up tags in the paragraph.
+
+					$code->section->{$i}->text = $section_text;
+
+					$i++;
 			}
-
-			/*
-			 * Handle notes.
-			 */
-			elseif(isset($attributes['style-name']) &&
-				(string) $attributes['style-name'] === 'EdNote')
-			{
-				// TODO: Clean up tags.
-				$code->metadata['notes'] = $subsection->PARA->asXML();
-			}
-			/*
-			 * Handle regular paragraphs.
-			 */
-			else
-			{
-				$code->section->{$i} = new stdClass();
-
-				$section_text = $subsection->PARA->asXML();
-				$section_text = str_replace(array('<PARA>', '</PARA>'), array('', ''), $section_text);
-				$section_text = trim($section_text);
-
-				$code->text .= $section_text . "\r\r";
-
-				/*
-				 * Get the section identifier if it exists.
-				 */
-				$tab = '<TAB tab-count="1"\/>';
-
-				if(preg_match("/^$tab\((?P<letter>[a-zA-Z0-9]+)\)$tab/", $section_text, $paragraph_id))
-				{
-					$code->section->{$i}->prefix = $paragraph_id['letter'];
-
-					$prefix = $subsection->PARA->TAB->asXML();
-
-					$section_text = str_replace($paragraph_id[0], '', $section_text);
-				}
-				// TODO: Clean up tags in the subsection.
-
-				$code->section->{$i}->text = $section_text;
-
-				$i++;
-			}
-
 		}
 
 		$this->section_count++;
 
 		return $code;
 	}
+
+	/**
+	 * Clean up XML into nice HTML.
+	 */
+	public function clean_text($xml)
+	{
+		// Remove TABLEFORMAT.
+		$xml = preg_replace('/<TABLEFORMAT[^>]*>.*?<\/TABLEFORMAT>/sm', '', $xml);
+
+		// Replace SCROLLTABLE
+		$xml = preg_replace('/<SCROLL_TABLE[^>]*>(.*?)<\/SCROLL_TABLE>/sm', '<table>$1</table>', $xml);
+
+		// Replace ROW with tr.
+		$xml = str_replace(array('<ROW>', '</ROW>'), array('<tr>', '</tr>'), $xml);
+
+		// Replace COL with td.
+		$xml = str_replace(array('<COL>', '</COL>'), array('<td>', '</td>'), $xml);
+
+		// Replace CELLFORMAT.
+		$xml = preg_replace('/<CELLFORMAT[^>]*>(.*?)<\/CELLFORMAT>/sm', '$1', $xml);
+
+		// Replace CELL.
+		$xml = preg_replace('/<CELL[^>]*>(.*?)<\/CELL>/sm', '$1', $xml);
+
+		// Replace empty tables.
+		$xml = preg_replace('/<TABLE>\s*<\/TABLE>/sm', '', $xml);
+
+		// Replace PARA with P.
+		$xml = preg_replace('/<PARA[^>]*>/sm', '<p>', $xml);
+		$xml = str_replace('</PARA>', '<p>', $xml);
+
+		// Replace <td><p> with <td>
+		$xml = preg_replace('/<td>\s*<p>/sm', '<td>', $xml);
+		$xml = preg_replace('/<\/p>\s*<\/td>/sm', '<td>', $xml);
+
+		// Replace TAB
+		// TODO: !IMPORTANT Handle nested paragraphs here.
+		$xml = str_replace('<TAB tab-count="1"/>', ' ', $xml);
+
+		// Trim.
+		$xml = trim($xml);
+
+		return $xml;
+	}
+
 
 	/**
 	 * Create permalinks from what's in the database
@@ -523,7 +610,13 @@ class Parser
 				}
 			}
 			$identifier_parts = array_reverse($identifier_parts);
+
+			foreach ($identifier_parts as $key => $value) {
+				$identifier_parts[$key] = $this->slugify($value);
+			}
+
 			$token = implode('/', $identifier_parts);
+
 
 			if ($item['current_edition'])
 			{
@@ -594,22 +687,24 @@ class Parser
 
 			while($law = $laws_statement->fetch(PDO::FETCH_ASSOC))
 			{
+				$section_slug = $this->slugify($law['section_number']);
+
 				if(defined('LAW_LONG_URLS') && LAW_LONG_URLS === TRUE)
 				{
-					$law_token = $token . '/' . $law['section_number'];
-					$law_url = $url . $law['section_number'] . '/';
+					$law_token = $token . '/' . $section_slug;
+					$law_url = $url . $section_slug . '/';
 				}
 				else
 				{
-					$law_token = $law['section_number'];
+					$law_token = $section_slug;
 
 					if ($item['current_edition'])
 					{
-						$law_url = '/' . $law['section_number'] . '/';
+						$law_url = '/' . $section_slug . '/';
 					}
 					else
 					{
-						$law_url = '/' . $item['edition_slug'] . '/' . $law['section_number'] . '/';
+						$law_url = '/' . $item['edition_slug'] . '/' . $section_slug . '/';
 					}
 				}
 				/*
@@ -658,82 +753,6 @@ class Parser
 	{
 	}
 
-	/**
-	 * Recurse through subsections of arbitrary depth. Subsections can be nested quite deeply, so
-	 * we call this method recursively to gather their content.
-	 */
-	public function recurse($section)
-	{
-
-		if ( !isset($section) || !isset($this->code) )
-		{
-			return FALSE;
-		}
-
-		/* Track how deep we've recursed, in order to create the prefix hierarchy. */
-		if (!isset($this->depth))
-		{
-			$this->depth = 1;
-		}
-		else
-		{
-			$this->depth++;
-		}
-
-		/*
-		 * Iterate through each subsection.
-		 */
-		foreach ($section as $subsection)
-		{
-
-			/*
-			 * Store this subsection's data in our code object.
-			 */
-			if(!isset($this->code->section->{$this->i}))
-			{
-				$this->code->section->{$this->i} = new stdClass();
-			}
-
-			$this->code->section->{$this->i}->text = (string) $subsection;
-			if (!empty($subsection['type']))
-			{
-				$this->code->section->{$this->i}->type = (string) $subsection['type'];
-			}
-			$this->code->section->{$this->i}->prefix = (string) $subsection['prefix'];
-			$this->prefix_hierarchy[] = (string) $subsection['prefix'];
-
-			$this->code->section->{$this->i}->prefix_hierarchy = (object) $this->prefix_hierarchy;
-
-			/*
-			 * We increment our counter at this point, rather than at the end of the loop, because
-			 * of the use of the recurse() method after it.
-			 */
-			$this->i++;
-
-			/*
-			 * If this recurses further, keep going.
-			 */
-			if (isset($subsection->section))
-			{
-				$this->recurse($subsection->section);
-			}
-
-			/*
-			 * Reduce the prefix hierarchy back to where it started, for our next loop through.
-			 */
-			$this->prefix_hierarchy = array_slice($this->prefix_hierarchy, 0, ($this->depth));
-
-		}
-
-		/*
-		 * Reset the prefix depth back to its default of 1.
-		 */
-		$this->depth--;
-
-		return TRUE;
-
-	}
-
 	public function store()
 	{
 		foreach($this->sections as $code)
@@ -778,6 +797,7 @@ class Parser
 			$structure->label = $struct->label;
 			$structure->level = $struct->level;
 			$structure->order_by = $struct->order_by;
+			$structure->metadata = $struct->metadata;
 
 			/* If we've gone through this loop already, then we have a parent ID. */
 			if (isset($this->code->structure_id))
@@ -2090,5 +2110,18 @@ class Parser
 
 		return $structure_labels;
 	} // end get_structure_labels()
+
+	/*
+	 * Create a url-safe string.
+	 */
+	public function slugify($value)
+	{
+		$value = preg_replace('[^a-z0-9-]', '', $value);
+		if(substr($value, -1, 1) === '.')
+		{
+			$value = substr($value, 0, -1);
+		}
+		return $value;
+	}
 
 } // end Parser class
