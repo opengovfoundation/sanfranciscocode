@@ -186,8 +186,9 @@ class CommentController extends BaseController
 			    <strong>Need Help?  Questions?  Suggestions?</strong>
 			</p>
 			<p>
-			    If you think something is broken or missing on the site, click the "Feedback &amp; Support" tab on the left side of every page.  We\'ll get back to you right away.  For everything else,
-			    <a class="c5" href="mailto:sayhello@opengovfoundation.org">click here</a> to send us an email.
+			    If you think something is broken or missing on the site, click the "Feedback &amp; Support" tab on the left side of every page.
+			    We\'ll get back to you right away.  For everything else,
+			    <a class="c5" href="mailto:sayhello@opengovfoundation.org">send us an email at sayhello@opengovfoundation.org</a>.
 			</p>
 			<p>
 			    <strong>About ReimagineSF</strong>
@@ -196,7 +197,7 @@ class CommentController extends BaseController
 			    San Francisco-area students have a stake in our city but too often don\'t have a voice.  Together, we can fix that.  Just like SF resident Gary Rabkin
 			    <a class="c5" href="http://www.sfgate.com/bayarea/article/A-push-to-abolish-ridiculous-S-F-laws-5119134.php">fixed a dumb bike law</a>..  Giving young San Francisco residents the chance to have a say in city government is what ReimagineSF is all about.  The ReimagineSF Civic Engagement Scholarship is brought to you by
 			    <a class="c5" href="http://www.sfbos.org/index.aspx?page=11323">Supervisor Mark Farrell</a> and
-			    <a class="c5" href="http://opengovfoundation.org">The OpenGov Foundation</a>.   Click here for contest rules, terms and conditions.
+			    <a class="c5" href="http://opengovfoundation.org">The OpenGov Foundation</a>.   Please read the contest rules, terms and conditions.
 			</p>
 			<p>
 
