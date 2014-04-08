@@ -519,7 +519,12 @@ class ParserController
 					/*
 					 * Set the edition
 					 */
-					 'edition_id' => $this->edition_id
+					 'edition_id' => $this->edition_id,
+
+					/*
+					 * Set the logger
+					 */
+					'logger' => $this->logger
 				)
 			);
 
@@ -741,7 +746,12 @@ class ParserController
 				/*
 				 * Set the database
 				 */
-				'db' => $this->db
+				'db' => $this->db,
+
+				/*
+				 * Set the logger
+				 */
+				'logger' => $this->logger
 			)
 		);
 
@@ -1218,7 +1228,8 @@ class ParserController
 				 */
 				$parser = new Parser(
 					array(
-						'db' => $this->db
+						'db' => $this->db,
+						'logger' => $this->logger
 					)
 				);
 

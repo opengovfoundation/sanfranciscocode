@@ -21,7 +21,7 @@
 /*
  * Log parser output.
  */
-$logger = new Logger(array('html' => TRUE));
+$logger = new Logger(array('html' => TRUE, 'level' => DEBUG_LEVEL));
 
 /*
  * Require that the user log in.

@@ -51,7 +51,7 @@ define('IMPORT_DATA_DIR', WEB_ROOT . '/admin/import-data/');
 /*
  * The file in the /includes/ directory that contains functions custom to this installation.
  */
-define('CUSTOM_FUNCTIONS', 'class.State-sample.inc.php');
+define('CUSTOM_FUNCTIONS', 'class.SanFrancisco.inc.php');
 
 /*
  * The directory in which templates are stored.
@@ -216,3 +216,9 @@ define('VERSION', '0.81');
  */
 // define('COURTLISTENER_USERNAME', 'jane_doe');
 // define('COURTLISTENER_PASSWORD', 's3cr3tp@ssw0rd');
+
+/*
+ * Define the level of debugging.  1 (Everything) -> 10 (Important Only).
+ * Anything over 10 *should* show none.
+ */
+define('DEBUG_LEVEL', 5);

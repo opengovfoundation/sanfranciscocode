@@ -303,10 +303,20 @@ if ($children !== FALSE)
 
 $body .= '</p>';
 
+
 if(isset($struct->metadata->text))
 {
 	$body .= '<p>' . $struct->metadata->text . '</p>';
 }
+
+if(isset($struct->metadata->history))
+{
+	$body .= '<section id="history">
+				<h2>History</h2>
+				<p>'.$struct->metadata->history.'</p>
+			</section>';
+}
+
 
 /*
  * Reset counter
@@ -347,14 +357,6 @@ if ($laws !== FALSE)
 
 	}
 	$body .= '</dl>';
-}
-
-if(isset($struct->metadata->history))
-{
-	$body .= '<section id="history">
-				<h2>History</h2>
-				<p>'.$struct->metadata->history.'</p>
-			</section>';
 }
 
 /*

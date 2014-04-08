@@ -9,12 +9,36 @@
  * @version		0.8
  * @link		http://www.statedecoded.com/
  * @since		0.3
-*/
+ *
+ * This library is Abstract - meaning you must derive it to use it!
+ *
+ * Example usage (to replace State-sample):
+********************************************************************
+// class.MyCity.inc.php
+
+ <?php
+
+require 'class.AmericanLegal.inc.php';
+
+// All we need is a derivative of both State and Parser.
+class State extends AmericanLegalState {}
+
+// We should probably list the images to ignore, though!
+class Parser extends AmericanLegalParser
+{
+	public $image_blacklist = array(
+		'seal.png',
+		'seal.jpg'
+	);
+}
+
+// class.MyCity.inc.php
+*******************************************************************/
 
 /**
  * This class may be populated with custom functions.
  */
-class State
+abstract class AmericanLegalState
 {
 
 }
@@ -25,21 +49,62 @@ class State
  * prescribed XML format <https://github.com/statedecoded/statedecoded/wiki/XML-Format-for-Parser>,
  * and serves as a guide for those who want to parse an alternate format.
  */
-class Parser
+abstract class AmericanLegalParser
 {
 
 	public $file = 0;
 	public $directory;
 	public $files = array();
 	public $db;
+	public $logger;
 	public $edition_id;
 	public $structure_labels;
 
 	public $section_count = 1;
 	public $structure_depth = 1;
 
-	//     Patterns:              | type of section                     | section number                    (opt ' - section number')       |      | hyphen | catch line
-	public $section_regex = '/^\[?(?P<type>SEC(TION|S\.|\.)|APPENDIX)\s+(?P<number>[0-9A-Z]+[0-9A-Za-z\.\-]*(.?\s-\s[0-9]+[0-9A-Za-z\.\-]*)?)\.?\s*(?:-\s*)?(?P<catch_line>.*?)\.?\]?$/i';
+	/*
+	 * Most codes have a Table of Contents as the first LEVEL.
+	 */
+	public $skip_toc = TRUE;
+
+	/*
+	 * Regexes.
+	 */
+	//                            | type of section                 |!temp!|    | section number                    (opt ' - section number')       |      | hyphen | catch line
+	public $section_regex = '/^\[?(?P<type>SEC(TION|S\.|\.)|APPENDIX|ARTICLE)\s+(?P<number>[0-9A-Z]+[0-9A-Za-z_\.\-]*(.?\s-\s[0-9]+[0-9A-Za-z\.\-]*)?)\.?\s*(?:-\s*)?(?P<catch_line>.*?)\.?\]?$/i';
+
+	public $structure_regex = '/^(?P<type>SEC(TION|S\.|\.)|APPENDIX|CHAPTER|ARTICLE)\s+(?P<number>[A-Za-z0-9]+)(:|.)\s*(?P<name>.*?)$/';
+
+	public $appendix_regex = '/^APPENDICES:\s+(?P<name>.*?)$/';
+
+	/*
+	 * Xpaths.
+	 */
+	public $structure_xpath = "./LEVEL[not(@style-name='Section')]";
+	public $structure_heading_xpath = "./RECORD/HEADING";
+	public $section_xpath = "./LEVEL[@style-name='Section']";
+
+	/*
+	 * Files to ignore.
+	 */
+	public $ignore_files = array(
+		'0-0-0-1.xml',
+		'0-0-0-2.xml'
+	);
+
+	/*
+	 * Unfortunately, there are some images that we cannot use, for a variety of reasons.
+	 * Most notably are city seals - most localities have laws preventing their use by
+	 * anyone other than the city.  This is going to be locality-specific, so put them here.
+	 * If you need more complex rules, override check_image()
+	 */
+	public $image_blacklist = array();
+
+	/*
+	 * Images to store.
+	 */
+	public $images = array();
 
 	/*
 	 * Count the structures and appendices statically
@@ -131,6 +196,8 @@ class Parser
 			 */
 			$filename = $this->files[$i];
 
+			$file = array_pop(explode('/', $filename));
+
 			/*
 			 * We only care about xml files.
 			 */
@@ -141,7 +208,7 @@ class Parser
 			 */
 			$this->file++;
 
-			if($extension == 'xml')
+			if($extension == 'xml' && !in_array($file, $this->ignore_files))
 			{
 				$this->import_xml($filename);
 
@@ -153,11 +220,11 @@ class Parser
 					 * Send this object back, out of the iterator.
 					 */
 
-					print 'Importing ' . $filename . '<br>';
+					$this->logger->message('Importing "' . $filename . '"', 3);
 					return $this->chapter;
 				}
 				else {
-					print 'No sections found in "' . $filename . '"<br>';
+					$this->logger->message('No sections found in "' . $filename . '"', 3);
 					continue;
 				}
 			}
@@ -227,14 +294,6 @@ class Parser
 		$structures = array();
 
 		/*
-		 * Get the base chapter.
-		 */
-		$chapter_name = (string) $this->chapter->REFERENCE->TITLE;
-
-		$structure = $this->parse_structure($chapter_name);
-		$structures[] = $structure;
-
-		/*
 		 * The real chapter starts at the first level.
 		 */
 		$chapter = $this->chapter->LEVEL;
@@ -242,120 +301,71 @@ class Parser
 		/*
 		 * The first child LEVEL we encounter is actually the table of contents, so we skip it.
 		 */
-		unset($chapter->LEVEL[0]);
+		if($this->skip_toc)
+		{
+			unset($chapter->LEVEL[0]);
+		}
 
 		/*
 		 * There are multiple sections per file.
 		 */
 		$this->sections = array();
 		$this->section_count = 1;
+		$this->parse_recurse($chapter, $structures);
+	}
+
+	public function parse_recurse($level, $structures)
+	{
+		$this->logger->message('parse_recurse', 1);
 
 		/*
 		 * Check to see if we have another layer of nesting
 		 */
-		if(count($chapter->xpath(".//LEVEL[@style-name='Article']/RECORD/HEADING")))
-		{
-			foreach($chapter->xpath(".//LEVEL[@style-name='Article']") as $article)
-			{
-				$this->structure_depth++;
-
-				$structure = $this->parse_structure( (string) $article->RECORD->HEADING );
-				$structures[] = $structure;
-
-				$sections = $article->xpath(".//LEVEL[@style-name='Section']");
-				$this->parse_sections($sections, $structures);
-
-				$this->structure_depth--;
-				array_pop($structures);
-			}
-		}
-		else {
-			$sections = $chapter->xpath("//LEVEL[@style-name='Section']");
-			$this->parse_sections($sections, $structures);
-		}
-
-		return TRUE;
-	}
-
-	public function parse_structure($chapter_name)
-	{
-		$structure = new stdClass();
-
-		if(preg_match('/^(?P<type>CHAPTER|ARTICLE)\s+(?P<number>[A-Za-z0-9]+)(:|.)\s*(?P<name>.*?)$/', $chapter_name, $chapter_parts))
-		{
-			$structure->name = $chapter_parts['name'];
-			$structure->identifier = $chapter_parts['number'];
-			$structure->order_by = str_pad($chapter_parts['number'], 4, '0', STR_PAD_LEFT);
-			$structure->label = ucwords(strtolower($chapter_parts['type']));
-		}
-		elseif(preg_match('/^APPENDICES:\s+(?P<name>.*?)$/', $chapter_name, $chapter_parts))
-		{
-			$structure->name = $chapter_parts['name'];
-			// Make up an identifier.
-			// Right now, there's only one!
-			//$structure->identifier = 'A' . self::$appendix_count;
-			$structure->identifier = 'appendix';
-			// Put these at the end.
-			$structure->order_by = '1' . str_pad(self::$appendix_count, 3, '0', STR_PAD_LEFT);
-			$structure->label = 'Appendix';
-
-			self::$appendix_count++;
-		}
-
-		$structure->level = $this->structure_depth;
-
-		return $structure;
-	}
-
-	public function parse_sections($sections, $structures)
-	{
-		foreach($sections as $section)
+		if(isset($level->LEVEL))
 		{
 			/*
-			 * Check for subsections nested with this section.
+			 * If we have two levels deeper, this is a structure.
 			 */
-			// TODO: Handle nesting appropriately!
-			if($subsections = $section->xpath(".//LEVEL[@style-name='SubSection']"))
+			if(count($level->xpath('./LEVEL/LEVEL')))
 			{
-				$this->structure_depth++;
+				$structure = FALSE;
 
-				/*
-				 * Parse the section anyway, but make it a structure.
-				 */
-				$temp_structure = $this->parse_section($section, $structures);
+				$this->logger->message('STRUCTURE', 1);
 
-				$structure = new stdClass();
-				$structure->name = $temp_structure->catch_line;
-				$structure->identifier = $temp_structure->section_number;
-				$structure->label = 'Section';
-				$structure->order_by = $temp_structure->order_by;
-				$structure->level = $this->structure_depth;
-				$structure->metadata = new stdClass();
-				$structure->metadata->text = $temp_structure->text;
+				// If we have a structure heading, add it to the structures.
+				if(count($level->xpath($this->structure_heading_xpath))) {
+					$this->structure_depth++;
 
-				if(isset($temp_structure->history))
-				{
-					$structure->metadata->history = $temp_structure->history;
-				}
+					$structure = $this->parse_structure( $level );
 
-				$structures[] = $structure;
+					if($structure) {
+						$this->logger->message('Descending : ' . $structure->name, 1);
 
-				foreach($subsections as $subsection)
-				{
-					$new_section = $this->parse_section($subsection, $structures);
-
-					if($new_section)
-					{
-						$this->sections[] = $new_section;
+						$structures[] = $structure;
 					}
 				}
+				foreach($level->LEVEL as $sublevel)
+				{
+					// But recurse, either way.
+					$this->parse_recurse($sublevel, $structures);
+				}
 
-				$this->structure_depth--;
-				array_pop($structures);
+				// If we had a structure heading, pop it from the structures.
+				if($structure) {
+					$this->logger->message('Ascending', 1);
+
+					$this->structure_depth--;
+					array_pop($structures);
+				}
 			}
+			/*
+			 * If we have one level deeper, this is a section.
+			 */
 			else
 			{
-				$new_section = $this->parse_section($section, $structures);
+				$this->logger->message('SECTION', 1);
+
+				$new_section = $this->parse_section($level, $structures);
 
 				if($new_section)
 				{
@@ -363,6 +373,106 @@ class Parser
 				}
 			}
 		}
+		/*
+		 * If we have no children, somehow we've gone too far!
+		 */
+		else
+		{
+			$this->logger->message('Empty', 1);
+		}
+
+		$this->logger->message('Exit parse_recurse', 1);
+	}
+
+	public function parse_structure($level)
+	{
+		$structure_name = (string) $level->RECORD->HEADING;
+
+		$structure = FALSE;
+
+		if(preg_match($this->structure_regex, $structure_name, $chapter_parts))
+		{
+			$this->logger->message('Structure name: ' . $structure_name, 1);
+
+			$structure = new stdClass();
+			$structure->metadata = new stdClass();
+
+			if(isset($chapter_parts['name']) && strlen(trim($chapter_parts['name'])))
+			{
+				$structure->name = $chapter_parts['name'];
+			}
+			else
+			{
+				$structure->name = $structure_name;
+			}
+			$structure->identifier = $chapter_parts['number'];
+			$structure->order_by = str_pad($chapter_parts['number'], 4, '0', STR_PAD_LEFT);
+			$structure->label = ucwords(strtolower($chapter_parts['type']));
+		}
+		elseif(preg_match($this->appendix_regex, $structure_name, $chapter_parts))
+		{
+			$this->logger->message('Appendix name: ' . $structure_name, 1);
+
+			$structure = new stdClass();
+			$structure->name = $chapter_parts['name'];
+			// Make up an identifier.
+			// Right now, there's only one!
+			//$structure->identifier = 'A' . self::$appendix_count;
+			$structure->identifier = 'appendix'; // Put these at the end.
+			$structure->order_by = '1' . str_pad(self::$appendix_count, 3, '0', STR_PAD_LEFT);
+			$structure->label = 'Appendix';
+
+			self::$appendix_count++;
+		}
+		else
+		{
+			$this->logger->message('Failed to match structure title: ' . $structure_name, 1);
+		}
+
+		if($structure)
+		{
+			/*
+			 * Set the level.
+			 */
+			$structure->level = $this->structure_depth;
+
+			/*
+			 * Check to see if this structure has text of its own.
+			 */
+			if($paragraphs = $level->xpath('./LEVEL[@style-name="Normal Level"]/RECORD'))
+			{
+				foreach($paragraphs as $paragraph)
+				{
+					$attributes = $paragraph->PARA->attributes();
+
+					$type = '';
+
+					if(isset($attributes['style-name']))
+					{
+						$type = (string) $attributes['style-name'];
+					}
+
+					switch($type)
+					{
+						case 'History' :
+						case 'Section-Deleted' :
+							$structure->metadata->history .= $this->clean_text($paragraph->PARA->asXML());
+							break;
+
+						case 'EdNote' :
+							$structure->metadata->notes .= $this->clean_text($paragraph->PARA->asXML());
+							break;
+
+						default :
+							$structure->metadata->text .= $this->clean_text($paragraph->PARA->asXML());
+							break;
+					}
+				}
+			}
+
+		}
+
+		return $structure;
 	}
 
 	public function parse_section($section, $structures)
@@ -374,13 +484,23 @@ class Parser
 		/*
 		 * Parse the catch line and section number.
 		 */
-		$section_title = (string) $section->RECORD->HEADING;
+		$section_title = trim((string) $section->RECORD->HEADING);
+
+		$this->logger->message('Title: ' . $section_title, 1);
 
 		preg_match($this->section_regex, $section_title, $section_parts);
+
+		if(!isset($section_parts['number']) || !isset($section_parts['catch_line']))
+		{
+			// TODO: Handle this error somewhat more gracefully.
+			$this->logger->message('Could not get Section info from title, "' . $section_title . '"', 5);
+		}
 
 		$code->section_number = $section_parts['number'];
 
 		$code->catch_line = $section_parts['catch_line'];
+
+
 		/*
 		 * If this is an appendix, use the whole line as the title.
 		 */
@@ -389,6 +509,7 @@ class Parser
 			$code->catch_line = $section_parts[0];
 		}
 		$code->text = '';
+		$code->history = '';
 		$code->metadata = array(
 			'repealed' => 'n'
 		);
@@ -415,7 +536,7 @@ class Parser
 			switch($type)
 			{
 				case 'History' :
-					$code->history = $this->clean_text($paragraph->PARA->asXML());
+					$code->history .= $this->clean_text($paragraph->PARA->asXML());
 					break;
 
 				case 'Section-Deleted' :
@@ -458,9 +579,16 @@ class Parser
 			}
 		}
 
-		$this->section_count++;
+		if(isset($code->catch_line) && strlen($code->catch_line))
+		{
+			$this->section_count++;
 
-		return $code;
+			return $code;
+		}
+		else
+		{
+			return FALSE;
+		}
 	}
 
 	/**
@@ -501,10 +629,56 @@ class Parser
 		// TODO: !IMPORTANT Handle nested paragraphs here.
 		$xml = str_replace('<TAB tab-count="1"/>', ' ', $xml);
 
+		// Deal with images
+		preg_match_all('/<PICTURE(?P<args>[^>]*?)\/>/', $xml, $images, PREG_SET_ORDER);
+		foreach($images as $current_image)
+		{
+			// Parse the arguments into an array.
+			preg_match_all('/(?P<name>[a-zA-Z_-]+)="(?P<value>[^"]*)"/',
+				$current_image['args'], $image_attrs, PREG_SET_ORDER);
+
+			$image = array();
+var_dump($image_attrs);
+			foreach($image_attrs as $image_attr)
+			{
+				$image[ $image_attr['name'] ] = $image_attr['value'];
+			}
+
+var_dump($image);
+			if( $this->check_image($image) )
+			{
+				$this->images[] = $image;
+				$xml = str_replace($current_image[0],
+					'<img src="/downloads/' . $image['id'] . '.jpg"/>',
+					$xml);
+			}
+			else
+			{
+				$xml = str_replace($current_image[0], '', $xml);
+
+			}
+
+		}
+
 		// Trim.
 		$xml = trim($xml);
 
 		return $xml;
+	}
+
+	public function clean_title($text)
+	{
+		$text = str_replace('<LINEBRK/>', ' ', $text);
+
+		return $text;
+	}
+
+	/**
+	 * Check that the image is valid.
+	 */
+	public function check_image($image)
+	{
+		return in_array($image['id'], $this->image_blacklist);
 	}
 
 
@@ -784,6 +958,7 @@ class Parser
 		$structure = new Parser(
 			array(
 				'db' => $this->db,
+				'logger' => $this->logger,
 				'edition_id' => $this->edition_id,
 				'structure_labels' => $this->structure_labels
 			)
@@ -800,7 +975,7 @@ class Parser
 			$structure->metadata = $struct->metadata;
 
 			/* If we've gone through this loop already, then we have a parent ID. */
-			if (isset($this->code->structure_id))
+			if (isset($this->code->structure_id) && $this->code->structure_id > 0)
 			{
 				$structure->parent_id = $this->code->structure_id;
 			}
@@ -872,6 +1047,7 @@ class Parser
 		$references = new Parser(
 			array(
 				'db' => $this->db,
+				'logger' => $this->logger,
 				'edition_id' => $this->edition_id,
 				'structure_labels' => $this->structure_labels
 			)
@@ -1045,6 +1221,7 @@ class Parser
 		$dictionary = new Parser(
 			array(
 				'db' => $this->db,
+				'logger' => $this->logger,
 				'edition_id' => $this->edition_id,
 				'structure_labels' => $this->structure_labels
 			)
@@ -1109,6 +1286,7 @@ class Parser
 				$find_scope = new Parser(
 					array(
 						'db' => $this->db,
+						'logger' => $this->logger,
 						'edition_id' => $this->edition_id,
 						'structure_labels' => $this->structure_labels
 					)
@@ -1169,7 +1347,7 @@ class Parser
 	 * When provided with a structural identifier, verifies whether that structural unit exists.
 	 * Returns the structural database ID if it exists; otherwise, returns false.
 	 */
-	function structure_exists()
+	public function structure_exists()
 	{
 
 		if (!isset($this->identifier))
@@ -1244,6 +1422,7 @@ class Parser
 				( empty($this->label) )
 			)
 		{
+			$this->logger->message('Can\'t create structure "' . $this->name . '"', 5);
 			return FALSE;
 		}
 
@@ -1253,6 +1432,7 @@ class Parser
 		$structure_id = $this->structure_exists();
 		if ($structure_id !== FALSE)
 		{
+			$this->logger->message('Structure_exists "' . $this->name . '"', 1);
 			return $structure_id;
 		}
 
@@ -1291,6 +1471,8 @@ class Parser
 			$sql .= ', metadata = :metadata';
 			$sql_args[':metadata'] = serialize($this->metadata);
 		}
+
+		$this->logger->message('Structure created: "' . $this->name . '"', 1);
 
 		$statement = $this->db->prepare($sql);
 		$result = $statement->execute($sql_args);
