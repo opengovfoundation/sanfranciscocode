@@ -31,12 +31,50 @@ class CommentController extends BaseController
 	{
 		$content = new Content();
 
-		$content->set('page_title', 'Top Comments');
+		$content->set('page_title', 'ReimagineSF');
 		$content->set('body_class', 'inside comments-page');
 		$content->set('content_class', 'nest wide');
 
 
 		$content->set('body', '<article id="comments">');
+		$content->append('body', '
+			<p>
+			    Change the law. Win $1,000. Make an impact.
+			</p>
+			<p>
+
+			</p>
+			<p>
+			    [Embed Supervisor Farrell "pitch" video]
+			</p>
+			<p>
+
+			</p>
+			<p>
+			    How would you improve the laws of San Francisco?  This is your chance to redesign the rules of the city, and earn a shot at a $1,000 scholarship.  Here\'s how it works:
+			</p>
+			<ol>
+				<li>
+				    Imagine A Better San Francisco:
+				     Think about what you like best - and like least - about living in San Francisco.  Odds are, there\'s a law to match.  How would you fix what you don\'t like, or build on what you do?  Sky\'s the limit.
+				</li>
+				<li>
+				     Find the Laws You Care About:
+				     Now that you have a vision for improving city life, visit
+				    <a class="c5" href="http://sanfranciscocode.org/">SanFranciscoCode.org</a>.  Browse and search through the laws to find what you care about most.
+				</li>
+				<li>
+				    Read, React, ReimagineSF:
+				     Read the laws.  Decide how you\'d improve them.  Post your changes to each law right at the bottom of the page using Disqus.  Your ideas will go straight to the Board of Supervisors for action.  The top suggestions will be collected right here.
+				</li>
+				<li>
+				    Tell Your Friends to Upvote:
+				     Share a link to your ideas with your friends, family, and the world.  Ask them to upvote your idea, or leave a comment in support.  That makes your idea float to the top, which is where you want to be to win a $1,000 scholarship.
+				</li>
+			</ol>
+			<p>
+			    San Francisco Supervisor Mark Farrell will select the 5 best ideas, turn each into actual legislation, then put them to the Board of Supervisors for a vote.  Oh, and those 5 student-legislators will each earn $1,000 for school.  Make an impact.  Win a scholarship.  ReimagineSF.
+			</p>');
 
 		$page = 1;
 		if(isset($_GET['page']))
@@ -52,7 +90,7 @@ class CommentController extends BaseController
 
 		if(is_array($posts) && count($posts))
 		{
-			$content->append('body', '<ol class="post-list" id="post-list" start="' .
+			$content->append('body', '<h2>Top Comments</h2><ol class="post-list" id="post-list" start="' .
 				($this->get_offset($page) + 1) .'">');
 
 			foreach($posts as $post)
@@ -143,6 +181,38 @@ class CommentController extends BaseController
 		{
 			$content->append('body', '<menu class="comment-nav"><ul>' .  $nav . '</ul></menu>');
 		}
+
+		$content->append('body', '<p>
+			    <strong>Need Help?  Questions?  Suggestions?</strong>
+			</p>
+			<p>
+			    If you think something is broken or missing on the site, click the "Feedback &amp; Support" tab on the left side of every page.  We\'ll get back to you right away.  For everything else,
+			    <a class="c5" href="mailto:sayhello@opengovfoundation.org">click here</a> to send us an email.
+			</p>
+			<p>
+			    <strong>About ReimagineSF</strong>
+			</p>
+			<p>
+			    San Francisco-area students have a stake in our city but too often don\'t have a voice.  Together, we can fix that.  Just like SF resident Gary Rabkin
+			    <a class="c5" href="http://www.sfgate.com/bayarea/article/A-push-to-abolish-ridiculous-S-F-laws-5119134.php">fixed a dumb bike law</a>..  Giving young San Francisco residents the chance to have a say in city government is what ReimagineSF is all about.  The ReimagineSF Civic Engagement Scholarship is brought to you by
+			    <a class="c5" href="http://www.sfbos.org/index.aspx?page=11323">Supervisor Mark Farrell</a> and
+			    <a class="c5" href="http://opengovfoundation.org">The OpenGov Foundation</a>.   Click here for contest rules, terms and conditions.
+			</p>
+			<p>
+
+			</p>
+			<p>
+			    <strong>About SanFranciscoCode.org</strong>
+			</p>
+			<p>
+			    <a class="c5" href="http://sanfranciscocode.org">SanFranciscoCode.org</a>, part of the
+			    <a class="c5" href="http://americadecoded.org">America Decoded</a> network, is the
+			    first Internet-Age edition of the city\'s municipal code, running 100%
+			    <a class="c5" href="https://github.com/opengovfoundation/sanfranciscocode">open-source software</a>
+				and fueled by 100%
+			    <a class="c5" href="http://dev.sanfranciscocode.org/downloads/">open law data</a>.
+			    <a class="c5" href="http://dev.sanfranciscocode.org/about/">Learn more</a>.
+			</p>');
 
 		$content->append('body', '</article>');
 
