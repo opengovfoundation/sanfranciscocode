@@ -53,21 +53,25 @@ class CommentController extends BaseController
 			<p>
 			    How would you improve the laws of San Francisco?  This is your chance to redesign the rules of the city, and earn a shot at a $1,000 scholarship.  Here\'s how it works:
 			</p>
-			<ol>
+			<ol class="comment-instructions">
 				<li>
+					<i class="fa fa-lightbulb-o"></i>
 				    Imagine A Better San Francisco:
-				     Think about what you like best - and like least - about living in San Francisco.  Odds are, there\'s a law to match.  How would you fix what you don\'t like, or build on what you do?  Sky\'s the limit.
+				    Think about what you like best - and like least - about living in San Francisco.  Odds are, there\'s a law to match.  How would you fix what you don\'t like, or build on what you do?  Sky\'s the limit.
 				</li>
 				<li>
-				     Find the Laws You Care About:
-				     Now that you have a vision for improving city life, visit
+					<i class="fa fa-search"></i>
+				    Find the Laws You Care About:
+				    Now that you have a vision for improving city life, visit
 				    <a class="c5" href="http://sanfranciscocode.org/">SanFranciscoCode.org</a>.  Browse and search through the laws to find what you care about most.
 				</li>
 				<li>
+					<i class="fa fa-comments-o"></i>
 				    Read, React, ReimagineSF:
-				     Read the laws.  Decide how you\'d improve them.  Post your changes to each law right at the bottom of the page using Disqus.  Your ideas will go straight to the Board of Supervisors for action.  The top suggestions will be collected right here.
+				    Read the laws.  Decide how you\'d improve them.  Post your changes to each law right at the bottom of the page using Disqus.  Your ideas will go straight to the Board of Supervisors for action.  The top suggestions will be collected right here.
 				</li>
 				<li>
+					<i class="fa fa-share-square-o"></i>
 				    Tell Your Friends to Upvote:
 				     Share a link to your ideas with your friends, family, and the world.  Ask them to upvote your idea, or leave a comment in support.  That makes your idea float to the top, which is where you want to be to win a $1,000 scholarship.
 				</li>

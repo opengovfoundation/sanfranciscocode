@@ -20,7 +20,8 @@ class SanFranciscoCode2013__Page extends Page
 
 	public $assets = array(
 		'font_awesome_css' => array(
-			'path' => '//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.css',
+			//'path' => '//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.css',
+			'path' => '//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css',
 			'type' => 'css'
 		),
 		'main_css' => array(

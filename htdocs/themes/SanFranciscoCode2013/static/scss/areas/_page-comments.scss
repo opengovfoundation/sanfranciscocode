@@ -193,3 +193,23 @@
 	}
 
 }
+
+.comment-instructions {
+	position: relative;
+
+	li {
+		margin-left: 50px;
+		margin-bottom: 1em;
+	}
+
+	.fa {
+		color: $base-dark;
+		position: absolute;
+		margin-top: 6px;
+		left: -15px;
+		font-size: 2em;
+	}
+	.fa-lightbulb-o {
+		font-size: 3em;
+	}
+}
