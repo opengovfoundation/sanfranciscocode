@@ -519,9 +519,4 @@ $border-radius-base: 6px;
       }
     }
   }
-  // pulling this in mainly for less shorthand
-  &.nav-justified {
-    @extend .nav-justified;
-    @extend .nav-tabs-justified;
-  }
 }
