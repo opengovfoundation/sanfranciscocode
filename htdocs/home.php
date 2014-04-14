@@ -44,6 +44,9 @@ $body = '<!-- UNCOMMENT TO DISPLAY AN INTRODUCTORY VIDEO HERE
 					<h1>Discover the ' . LAWS_NAME . '</h1>
 					<h2>The laws of ' . PLACE_NAME . ', for non-lawyers.</h2>
 				</hgroup>
+				<hgroup>
+					<h3><a href="http://' . BASE_SITE_DOMAIN . '/comments/">Students Reimagine SF: Win a $1,000 Scholarship</a></h3>
+				</hgroup>
 
 				<section id="sections-feature">
 					<p>These are the sections of the '.LAWS_NAME.'.</p>
