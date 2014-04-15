@@ -45,7 +45,10 @@ class CommentController extends BaseController
 
 			</p>
 			<p>
-			    [Embed Supervisor Farrell "pitch" video]
+				<div class="video-wrapper">
+			    	<iframe src="//player.vimeo.com/video/91737479" width="500" height="282" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+			    </div>
+			    <p><a href="http://vimeo.com/91737479">Reimagine SF</a> from <a href="http://vimeo.com/supfarrell">Supervisor Mark Farrell</a> on <a href="https://vimeo.com">Vimeo</a>.</p>
 			</p>
 			<p>
 
