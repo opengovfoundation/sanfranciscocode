@@ -25,9 +25,10 @@ namespace :world do
 
   task :deploy do
     env = ENV['ENV'] || 'staging'
+    branch = ENV['BRANCH'] || 'master'
     apps.each do |app|
       Capistrano::CLI.ui.say "deploying #{app}:#{env}"
-      system("cap #{app}:#{env} deploy")
+      system("cap #{app}:#{env} branch='#{branch}' deploy")
     end;
   end
 
