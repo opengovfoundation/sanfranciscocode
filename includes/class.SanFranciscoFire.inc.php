@@ -22,12 +22,9 @@ class State extends AmericanLegalState {}
 
 class Parser extends AmericanLegalParser
 {
-	/*
-	 * Most codes have a Table of Contents as the first LEVEL.
-	 */
-	public function pre_parse_chapter(&$chapter, &$structures)
-	{
-		$this->logger->message('Skipping first level.', 2);
-		unset($chapter->LEVEL->LEVEL[0]);
-	}
+	//     Patterns:                         | section number                          |   | hyphen | catch line
+	public $section_regex = '/^\[?(?:SECTION )?(?P<number>[0-9A-Z]+[0-9A-Za-z_\.\-]*\.?)\s*(?:–\s*)?(?P<catch_line>.*?)\.?\]?$/i';
+
+	public $structure_regex = '/^(?P<type>CHAPTER|DIVISION|PART|SECTION)\s+(?P<number>[A-Za-z0-9\.]+)(?:\s*–)?\s*(?P<name>.*?)$/i';
+
 }

@@ -74,9 +74,9 @@ abstract class AmericanLegalParser
 	//                            | type of section                 |!temp!|    | section number                    (opt ' - section number')       |      | hyphen | catch line
 	public $section_regex = '/^\[?(?P<type>SEC(TION|S\.|\.)|APPENDIX|ARTICLE)\s+(?P<number>[0-9A-Z]+[0-9A-Za-z_\.\-]*(.?\s-\s[0-9]+[0-9A-Za-z\.\-]*)?)\.?\s*(?:-\s*)?(?P<catch_line>.*?)\.?\]?$/i';
 
-	public $structure_regex = '/^(?P<type>SEC(TION|S\.|\.)|APPENDIX|CHAPTER|ARTICLE)\s+(?P<number>[A-Za-z0-9]+)(:|.)\s*(?P<name>.*?)$/';
+	public $structure_regex = '/^(?P<type>SEC(TION|S\.|\.)|APPENDIX|CHAPTER|ARTICLE)\s+(?P<number>[A-Za-z0-9\.]+)(:|.)\s*(?P<name>.*?)$/i';
 
-	public $appendix_regex = '/^APPENDICES:\s+(?P<name>.*?)$/';
+	public $appendix_regex = '/^APPENDI(CES|X):\s+(?P<name>.*?)$/i';
 
 	/*
 	 * Xpaths.
@@ -278,6 +278,7 @@ abstract class AmericanLegalParser
 	 */
 	public function parse()
 	{
+		$this->structure_depth = 0;
 
 		/*
 		 * If a section of code hasn't been passed to this, then it's of no use.
@@ -294,17 +295,17 @@ abstract class AmericanLegalParser
 		$structures = array();
 
 		/*
+		 * The first child LEVEL we encounter is actually the table of contents, so we skip it.
+		 */
+		if(method_exists($this, 'pre_parse_chapter'))
+		{
+			$this->pre_parse_chapter($this->chapter, $structures);
+		}
+
+		/*
 		 * The real chapter starts at the first level.
 		 */
 		$chapter = $this->chapter->LEVEL;
-
-		/*
-		 * The first child LEVEL we encounter is actually the table of contents, so we skip it.
-		 */
-		if($this->skip_toc)
-		{
-			unset($chapter->LEVEL[0]);
-		}
 
 		/*
 		 * There are multiple sections per file.
@@ -405,8 +406,6 @@ abstract class AmericanLegalParser
 			{
 				$structure->name = $structure_name;
 			}
-			$structure->identifier = $chapter_parts['number'];
-			$structure->order_by = str_pad($chapter_parts['number'], 4, '0', STR_PAD_LEFT);
 			$structure->label = ucwords(strtolower($chapter_parts['type']));
 		}
 		elseif(preg_match($this->appendix_regex, $structure_name, $chapter_parts))
@@ -418,8 +417,6 @@ abstract class AmericanLegalParser
 			// Make up an identifier.
 			// Right now, there's only one!
 			//$structure->identifier = 'A' . self::$appendix_count;
-			$structure->identifier = 'appendix'; // Put these at the end.
-			$structure->order_by = '1' . str_pad(self::$appendix_count, 3, '0', STR_PAD_LEFT);
 			$structure->label = 'Appendix';
 
 			self::$appendix_count++;
@@ -435,6 +432,26 @@ abstract class AmericanLegalParser
 			 * Set the level.
 			 */
 			$structure->level = $this->structure_depth;
+
+
+			if($structure->label == 'Appendix')
+			{
+				if($chapter_parts['number'])
+				{
+					$structure->identifier = $chapter_parts['number']; // Put these at the end.
+				}
+				else
+				{
+					$structure->identifier = 'appendix';
+				}
+				$structure->order_by = '1' . str_pad(self::$appendix_count, 3, '0', STR_PAD_LEFT);
+			}
+			else
+			{
+				$structure->identifier = $chapter_parts['number'];
+				$structure->order_by = str_pad($chapter_parts['number'], 4, '0', STR_PAD_LEFT);
+			}
+
 
 			/*
 			 * Check to see if this structure has text of its own.
@@ -464,13 +481,37 @@ abstract class AmericanLegalParser
 							break;
 
 						default :
-							$structure->metadata->text .= $this->clean_text($paragraph->PARA->asXML());
+							$table_children = $paragraph->PARA->xpath('./TABLE|SCROLL_TABLE');
+
+							$para_text = $paragraph->PARA->asXML();
+
+							if(!isset($structure->metadata->text))
+							{
+								$structure->metadata->text = '';
+							}
+
+							// Remove tables of contents.
+							if($table_children && count($table_children))
+							{
+								$this->logger->message('Has tables.', 1);
+
+								foreach($table_children as $child)
+								{
+									//var_dump(html_entities($para_text), html_entities($child->asXML()));
+									$para_text = str_replace($child->asXML(), '', $para_text);
+								}
+							}
+
+							$structure->metadata->text .= $this->clean_text($para_text);
+
 							break;
 					}
 				}
 			}
 
 		}
+
+		$this->logger->message('Structure Data: ' . print_r($structure, TRUE), 1);
 
 		return $structure;
 	}
@@ -513,7 +554,8 @@ abstract class AmericanLegalParser
 		$code->metadata = array(
 			'repealed' => 'n'
 		);
-		$code->order_by = str_pad($this->section_count, 4, '0', STR_PAD_LEFT);
+
+		$code->order_by = $this->get_section_order_by($code);
 
 		/*
 		 * Get the paragraph text from the children RECORDs.
@@ -583,12 +625,37 @@ abstract class AmericanLegalParser
 		{
 			$this->section_count++;
 
+			$this->logger->message('Section Data: ' . print_r($code, TRUE), 1);
+
 			return $code;
 		}
 		else
 		{
+			$this->logger->message('Invalid section: ' . print_r($code, TRUE), 1);
 			return FALSE;
 		}
+	}
+
+	/**
+	 * Wrap up the convoluted logic for creating the order_by value.
+	 * Feel free to override this, but keep in mind it's a natural sort.
+	 */
+
+	public function get_section_order_by($code)
+	{
+		// Do some wrangling to get an orderable number.
+		$order_by = $code->section_number;
+		if(substr($order_by, -1, 1) == '.')
+		{
+			$order_by = substr($order_by, 0, -1);
+		}
+
+		$order_by = floatval($order_by);
+		$order_by = intval($order_by * 100.0);
+
+		$order_by = str_pad($order_by, 8, '0', STR_PAD_LEFT);
+
+		return $order_by;
 	}
 
 	/**
@@ -596,10 +663,11 @@ abstract class AmericanLegalParser
 	 */
 	public function clean_text($xml)
 	{
+		//$this->logger->message('Before formatting XML: "' . $xml . '"', 1);
 		// Remove TABLEFORMAT.
 		$xml = preg_replace('/<TABLEFORMAT[^>]*>.*?<\/TABLEFORMAT>/sm', '', $xml);
 
-		// Replace SCROLLTABLE
+		// Replace SCROLL_TABLE
 		$xml = preg_replace('/<SCROLL_TABLE[^>]*>(.*?)<\/SCROLL_TABLE>/sm', '<table>$1</table>', $xml);
 
 		// Replace ROW with tr.
@@ -624,6 +692,30 @@ abstract class AmericanLegalParser
 		// Replace <td><p> with <td>
 		$xml = preg_replace('/<td>\s*<p>/sm', '<td>', $xml);
 		$xml = preg_replace('/<\/p>\s*<\/td>/sm', '<td>', $xml);
+
+		// At this point, we should have clean tables.
+		// In cases where we have two consecutive tables, with the first having only one row,
+		// that's probably a table heading and then the table body.
+		preg_match_all('/<table>(.*?)<\/table>\s*<table>(.*?)<\/table>/smi', $xml, $tables, PREG_SET_ORDER);
+		if($tables && count($tables))
+		{
+			foreach($tables as $table_pair)
+			{
+				if(substr_count($table_pair[1], '<tr>') === 1)
+				{
+					$table_pair[1] = str_replace(
+						array('<tbody>', '</tbody>', '<td>', '</td>'),
+						array('<thead>', '</thead>', '<th>', '</th>'),
+						$table_pair[1]);
+
+					$xml = str_replace($table_pair[0], '<table>' . $table_pair[1] . $table_pair[2] . '</table>', $xml);
+				}
+			}
+		}
+
+
+		// Replace CHARFORMAT.
+		$xml = preg_replace('/<CHARFORMAT[^>]*>(.*?)<\/CHARFORMAT>/sm', '$1', $xml);
 
 		// Replace TAB
 		// TODO: !IMPORTANT Handle nested paragraphs here.
@@ -662,6 +754,8 @@ var_dump($image);
 
 		// Trim.
 		$xml = trim($xml);
+
+		//$this->logger->message('After formatting XML: "' . $xml . '"', 1);
 
 		return $xml;
 	}
