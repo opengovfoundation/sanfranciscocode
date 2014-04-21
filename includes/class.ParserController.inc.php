@@ -212,10 +212,28 @@ class ParserController
 
 		$errors = array();
 
-		if ($post_data['edition_option'] == 'new')
+		$create_data = array();
+
+		if (!empty($post_data['make_current']))
 		{
 
-			$create_data = array();
+			if ($current = filter_var($post_data['make_current'], FILTER_VALIDATE_INT))
+			{
+				$create_data['current'] = (int) $current;
+			}
+			else
+			{
+				$errors[] = 'Unexpected value for “make this edition current.”';
+			}
+
+		}
+		else
+		{
+			$create_data['current'] = 0;
+		}
+
+		if ($post_data['edition_option'] == 'new')
+		{
 
 			if ($name = filter_var($post_data['new_edition_name'], FILTER_SANITIZE_STRING))
 			{
@@ -233,24 +251,6 @@ class ParserController
 			else
 			{
 				$errors[] = 'Please enter a valid edition URL.';
-			}
-
-			if (!empty($post_data['make_current']))
-			{
-
-				if ($current = filter_var($post_data['make_current'], FILTER_VALIDATE_INT))
-				{
-					$create_data['current'] = (int) $current;
-				}
-				else
-				{
-					$errors[] = 'Unexpected value for “make this edition current.”';
-				}
-
-			}
-			else
-			{
-				$create_data['current'] = 0;
 			}
 
 			if (count($errors) === 0)
@@ -276,6 +276,12 @@ class ParserController
 			if ($edition_id = filter_var($post_data['edition'], FILTER_VALIDATE_INT))
 			{
 				$this->edition_id = $edition_id;
+
+				if($create_data['current'] > 0)
+				{
+					$create_data['id'] = $this->edition_id;
+					$this->update_edition($create_data);
+				}
 			}
 			else
 			{
@@ -301,6 +307,7 @@ class ParserController
 
 			if ($edition_result !== FALSE && $edition_statement->rowCount() > 0)
 			{
+				$this->export_edition_id($this->edition_id);
 				$this->edition = $edition_statement->fetch(PDO::FETCH_ASSOC);
 			}
 			else
@@ -368,37 +375,6 @@ class ParserController
 
 		if ($result !== FALSE)
 		{
-
-			/*
-			 * If possible, modify the .htaccess file, to store permanently the edition ID.
-			 */
-			if (is_writable(WEB_ROOT . '/.htaccess') == TRUE)
-			{
-
-				$htaccess = file_get_contents(WEB_ROOT . '/.htaccess');
-
-				/*
-				 * If there isn't already an edition ID in .htaccess, then write a new record.
-				 * Otherwise, update the existing record.
-				 */
-				if (strpos($htaccess, ' EDITION_ID ') === FALSE)
-				{
-					$htaccess .= PHP_EOL . PHP_EOL . 'SetEnv EDITION_ID ' . $this->db->lastInsertId() . PHP_EOL;
-				}
-				else
-				{
-					$htaccess = preg_replace('/SetEnv EDITION_ID (\d+)/', 'SetEnv EDITION_ID ' . $this->db->lastInsertId(), $htaccess);
-				}
-				$result = file_put_contents(WEB_ROOT . '/.htaccess', $htaccess);
-
-			}
-
-			/*
-			 * Store the edition ID as a constant, so that we can use it elsewhere in the import
-			 * process.
-			 */
-			define('EDITION_ID', $this->db->lastInsertId());
-
 			return $this->db->lastInsertId();
 
 		}
@@ -407,6 +383,98 @@ class ParserController
 			return FALSE;
 		}
 
+	}
+
+	/**
+	 * Update an edition.
+	 */
+	public function update_edition($data)
+	{
+		if($data['id'])
+		{
+			$sql_args[':id'] = $data['id'];
+			unset($data['id']);
+
+			if(count($data))
+			{
+				$sql = 'UPDATE editions
+						SET ';
+				$update = array();
+				foreach($data as $key => $value)
+				{
+					$sql_args[':' . $key] = $value;
+					$update[] = $key .' = :' . $key;
+				}
+				$sql .= join(',', $update);
+				$sql .= ' WHERE id = :id';
+
+				$statement = $this->db->prepare($sql);
+				$result = $statement->execute($sql_args);
+			}
+			else
+			{
+				trigger_error('Nothing to update on editions. Cowardly refusing.', E_USER_WARNING);
+			}
+		}
+		else
+		{
+			trigger_error('Updating editions without an id! Cowardly refusing.', E_USER_WARNING);
+		}
+	}
+
+	/**
+	 * Store the edition id in the .htaccess file.
+	 */
+
+
+	public function export_edition_id($edition_id)
+	{
+		/*
+		 * If possible, modify the .htaccess file, to store permanently the edition ID.
+		 */
+		if (is_writable(WEB_ROOT . '/.htaccess') == TRUE)
+		{
+			$this->logger->message('Writing edition id to .htaccess', 1);
+
+			$htaccess = file_get_contents(WEB_ROOT . '/.htaccess');
+
+			/*
+			 * If there isn't already an edition ID in .htaccess, then write a new record.
+			 * Otherwise, update the existing record.
+			 */
+			if (strpos($htaccess, ' EDITION_ID ') === FALSE)
+			{
+				$htaccess .= PHP_EOL . PHP_EOL . 'SetEnv EDITION_ID ' . $edition_id . PHP_EOL;
+			}
+			else
+			{
+				$htaccess = preg_replace('/SetEnv EDITION_ID (\d+)/', 'SetEnv EDITION_ID ' . $edition_id, $htaccess);
+			}
+			$result = file_put_contents(WEB_ROOT . '/.htaccess', $htaccess);
+
+			if($result)
+			{
+				$this->logger->message('Wrote edition id to .htaccess', 5);
+			}
+			else
+			{
+				$this->logger->message('Could not write edition id to .htaccess!', 10);
+			}
+
+		}
+		else
+		{
+			$this->logger->message('Cannot write to .htaccess!', 10);
+		}
+
+		/*
+		 * Store the edition ID as a constant, so that we can use it elsewhere in the import
+		 * process.
+		 */
+		if(!defined('EDITION_ID'))
+		{
+			define('EDITION_ID', $edition_id);
+		}
 	}
 
 	/**
