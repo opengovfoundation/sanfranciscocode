@@ -99,7 +99,7 @@ abstract class AmericanLegalParser
 	 * anyone other than the city.  This is going to be locality-specific, so put them here.
 	 * If you need more complex rules, override check_image()
 	 */
-	public $image_blacklist = array();
+	public $image_blacklist = array('ALP Icon', 'SFSeal');
 
 	/*
 	 * Images to store.
@@ -407,6 +407,11 @@ abstract class AmericanLegalParser
 				$structure->name = $structure_name;
 			}
 			$structure->label = ucwords(strtolower($chapter_parts['type']));
+
+			if(!$structure->label)
+			{
+				$structure->label = 'Structure';
+			}
 		}
 		elseif(preg_match($this->appendix_regex, $structure_name, $chapter_parts))
 		{
@@ -687,7 +692,10 @@ abstract class AmericanLegalParser
 
 		// Replace PARA with P.
 		$xml = preg_replace('/<PARA[^>]*>/sm', '<p>', $xml);
-		$xml = str_replace('</PARA>', '<p>', $xml);
+		$xml = str_replace('</PARA>', '</p>', $xml);
+
+		$xml = preg_replace('/<PARAFORMAT[^>]*>/sm', '<p>', $xml);
+		$xml = str_replace('</PARAFORMAT>', '</p>', $xml);
 
 		// Replace <td><p> with <td>
 		$xml = preg_replace('/<td>\s*<p>/sm', '<td>', $xml);
@@ -730,22 +738,37 @@ abstract class AmericanLegalParser
 				$current_image['args'], $image_attrs, PREG_SET_ORDER);
 
 			$image = array();
-var_dump($image_attrs);
+
 			foreach($image_attrs as $image_attr)
 			{
 				$image[ $image_attr['name'] ] = $image_attr['value'];
 			}
 
-var_dump($image);
 			if( $this->check_image($image) )
 			{
+				$image['filename'] = str_replace('-img', '', $image['id']) . '.jpg';
+
 				$this->images[] = $image;
+
+				$image_url = $this->downloads_url . 'images/' . $image['filename'];
+				$image_source = $this->directory . '../IMAGES/' . $image['filename'];
+				$image_download = $this->downloads_dir . 'images/' . $image['filename'];
+
+				// All images have been converted to jpg for export, so we should be safe.
 				$xml = str_replace($current_image[0],
-					'<img src="/downloads/' . $image['id'] . '.jpg"/>',
+					'<a href=" ' . $image_url . '" title="click to zoom" class="lightbox"><img src="' . $image_url . '"/></a>',
 					$xml);
+
+				if(!copy($image_source, $image_download))
+				{
+					$this->logger->message('Can\'t copy image from "' . $image_source .
+						'" to "' . $image_download . '"', 10);
+				}
+
 			}
 			else
 			{
+				$this->logger->message('Skipping image "' . $current_image[0] . '"', 2);
 				$xml = str_replace($current_image[0], '', $xml);
 
 			}
@@ -772,7 +795,15 @@ var_dump($image);
 	 */
 	public function check_image($image)
 	{
-		return in_array($image['id'], $this->image_blacklist);
+		foreach($this->image_blacklist as $blacklisted)
+		{
+			if(strpos($image['name'], $blacklisted) !== FALSE)
+			{
+				return FALSE;
+			}
+		}
+
+		return TRUE;
 	}
 
 

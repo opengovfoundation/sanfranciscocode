@@ -22,11 +22,16 @@ class State extends AmericanLegalState {}
 
 class Parser extends AmericanLegalParser
 {
+	public $section_regex = '/^\[?(?:SECTION )?(?P<number>[0-9A-Z]+[0-9A-Za-z_\.\-]*\.?)\s*(?:–\s*)?(?P<catch_line>.*?)\.?\]?$/i';
+
+	public $structure_regex = '/^(?P<type>CHAPTER|DIVISION|PART|SECTION)?\s*(?P<number>[A-Za-z0-9\.]+)(?:\s*–)?\s*(?P<name>.*?)$/i';
+
 	public function pre_parse_chapter(&$chapter, &$structures)
 	{
 		/*
 		 * Get the part of the building code from the title.
 		 */
+		$this->logger->message('Generating building code sections.', 2);
 		if(preg_match('/^(([A-Z ]+) CODE) ?(.*)$/', $chapter->REFERENCE->TITLE[0], $matches))
 		{
 			$this->logger->message('BUILDING: ' . $matches[1], 1);
@@ -48,6 +53,9 @@ class Parser extends AmericanLegalParser
 
 			$structures[] = $structure;
 		}
+
+		$this->logger->message('Skipping first level.', 2);
+		unset($chapter->LEVEL->LEVEL[0]);
 
 	}
 }
