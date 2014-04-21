@@ -255,6 +255,11 @@ if (isset($struct->metadata))
 
 }
 
+if(isset($struct->metadata->text))
+{
+	$body .= '<p>' . $struct->metadata->text . '</p>';
+}
+
 /*
  * Row classes and row counter.
  */
@@ -300,14 +305,8 @@ if ($children !== FALSE)
 
 }
 
-
 $body .= '</p>';
 
-
-if(isset($struct->metadata->text))
-{
-	$body .= '<p>' . $struct->metadata->text . '</p>';
-}
 
 if(isset($struct->metadata->history))
 {
