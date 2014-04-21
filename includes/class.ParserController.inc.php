@@ -592,7 +592,14 @@ class ParserController
 					/*
 					 * Set the logger
 					 */
-					'logger' => $this->logger
+					'logger' => $this->logger,
+
+					/*
+					 * Set the downloads directories
+					 */
+					'downloads_dir' => $this->downloads_dir,
+					'downloads_url' => $this->downloads_url
+
 				)
 			);
 
@@ -819,7 +826,13 @@ class ParserController
 				/*
 				 * Set the logger
 				 */
-				'logger' => $this->logger
+				'logger' => $this->logger,
+
+				/*
+				 * Set the downloads directories
+				 */
+				'downloads_dir' => $this->downloads_dir,
+				'downloads_url' => $this->downloads_url
 			)
 		);
 
@@ -930,37 +943,7 @@ class ParserController
 
 		$this->logger->message('Preparing to export bulk downloads', 5);
 
-		/*
-		 * Define the location of the downloads directory.
-		 */
-		$downloads_dir = WEB_ROOT . '/downloads/';
-
-		if(!isset($this->edition) || !isset($this->edition['slug']))
-		{
-			$this->logger->message('Edition is missing!  Cannot write new files.', 10);
-			throw new Exception('Edition is missing');
-		}
-
-		/*
-		 * Delete our old downloads directory.
-		 */
-		$this->logger->message('Removing old downloads folder.', 5);
-		exec('cd ' . WEB_ROOT . '/downloads/; rm -R ' . $this->edition['slug']);
-
-		/*
-		 * If we cannot write files to the downloads directory, then we can't export anything.
-		 */
-		if (is_writable($downloads_dir) === FALSE)
-		{
-			$this->logger->message('Error: ' . $downloads_dir . ' could not be written to, so bulk
-				download files could not be exported.', 10);
-			return FALSE;
-		}
-
-		/*
-		 * Add the proper structure for editions.
-		 */
-		$downloads_dir .= $this->edition['slug'] . '/';
+		$downloads_dir = $this->downloads_dir;
 
 		/*
 		 * Begin the process of exporting each section.
@@ -1210,28 +1193,6 @@ class ParserController
 				$json_dir = $downloads_dir . 'code-json' . $url;
 
 				/*
-				 * If the JSON directory doesn't exist, create it.
-				 */
-				if (!file_exists($json_dir))
-				{
-					/*
-					 * Build our directories recursively.
-					 * Don't worry about the mode, as our server's umask should handle
-					 * that for us.
-					 */
-					mkdir($json_dir, 0777, true);
-				}
-
-				/*
-				 * If we cannot write to the JSON directory, log an error.
-				 */
-				if (!is_writable($json_dir))
-				{
-					$this->logger->message('Cannot write to ' . $json_dir . ' to export files.', 10);
-					break;
-				}
-
-				/*
 				 * Set a flag telling us that we may write JSON.
 				 */
 				$write_json = TRUE;
@@ -1242,23 +1203,6 @@ class ParserController
 				$text_dir = $downloads_dir . 'code-text' . $url;
 
 				/*
-				 * If the text directory doesn't exist, create it.
-				 */
-				if (!file_exists($text_dir))
-				{
-					mkdir($text_dir, 0777, true);
-				}
-
-				/*
-				 * If we cannot write to the text directory, log an error.
-				 */
-				if (!is_writable($text_dir))
-				{
-					$this->logger->message('Cannot open ' . $text_dir . ' to export files.', 10);
-					break;
-				}
-
-				/*
 				 * Set a flag telling us that we may write text.
 				 */
 				$write_text = TRUE;
@@ -1267,23 +1211,6 @@ class ParserController
 				 * Establish the path of our code XML storage directory.
 				 */
 				$xml_dir = $downloads_dir . 'code-xml' . $url;
-
-				/*
-				 * If the XML directory doesn't exist, create it.
-				 */
-				if (!file_exists($xml_dir))
-				{
-					mkdir($xml_dir, 0777, true);
-				}
-
-				/*
-				 * If we cannot write to the text directory, log an error.
-				 */
-				if (!is_writable($xml_dir))
-				{
-					$this->logger->message('Cannot open ' . $xml_dir . ' to export files.', 10);
-					break;
-				}
 
 				/*
 				 * Set a flag telling us that we may write XML.
@@ -1297,7 +1224,9 @@ class ParserController
 				$parser = new Parser(
 					array(
 						'db' => $this->db,
-						'logger' => $this->logger
+						'logger' => $this->logger,
+						'downloads_dir' => $this->downloads_dir,
+						'downloads_url' => $this->downloads_url
 					)
 				);
 
@@ -1555,6 +1484,79 @@ class ParserController
 			$this->export_structure($item['s1_id']);
 
 		} // end the while() structure iterator
+	}
+
+	/**
+	 * Create necessary folders.
+	 */
+	public function setup_directories()
+	{
+
+		$this->logger->message('Writing output directories.', 5);
+		/*
+		 * Define the location of the downloads directory.
+		 */
+		$downloads_dir = WEB_ROOT . '/downloads/';
+
+		if(!isset($this->edition) || !isset($this->edition['slug']))
+		{
+			$this->logger->message('Edition is missing!  Cannot write new files.', 10);
+			throw new Exception('Edition is missing');
+		}
+
+		/*
+		 * Delete our old downloads directory.
+		 */
+		$this->logger->message('Removing old downloads folder.', 5);
+		exec('cd ' . WEB_ROOT . '/downloads/; rm -R ' . $this->edition['slug']);
+
+		/*
+		 * If we cannot write files to the downloads directory, then we can't export anything.
+		 */
+		if (is_writable($downloads_dir) === FALSE)
+		{
+			$this->logger->message('Error: ' . $downloads_dir . ' could not be written to, so bulk
+				download files could not be exported.', 10);
+			return FALSE;
+		}
+
+		/*
+		 * Add the proper structure for editions.
+		 */
+		$downloads_dir .= $this->edition['slug'] . '/';
+
+		$this->downloads_dir = $downloads_dir;
+
+		$this->downloads_url = '/downloads/' . $this->edition['slug'] . '/';
+
+		foreach(array('code-json', 'code-text', 'code-xml', 'images') as $data_dir)
+		{
+			$this->logger->message('Creating "' . $this->downloads_dir . $data_dir . '"', 4);
+
+			/*
+			 * If the JSON directory doesn't exist, create it.
+			 */
+			if (!file_exists($this->downloads_dir . $data_dir))
+			{
+				/*
+				 * Build our directories recursively.
+				 * Don't worry about the mode, as our server's umask should handle
+				 * that for us.
+				 */
+				if(!mkdir($this->downloads_dir . $data_dir, 0777, true))
+				{
+					$this->logger->message('Cannot create directory "' . $this->downloads_dir . $data_dir . '"', 10);
+				}
+			}
+
+			/*
+			 * If we cannot write to the JSON directory, log an error.
+			 */
+			if (!is_writable($this->downloads_dir . $data_dir))
+			{
+				$this->logger->message('Cannot write to "' . $data_dir . '"', 10);
+			}
+		}
 	}
 
 	/**

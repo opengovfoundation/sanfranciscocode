@@ -136,6 +136,7 @@ elseif ($_POST['action'] == 'parse')
 			{
 
 				$parser->clear_apc();
+				$parser->setup_directories();
 
 				/*
 				 * We should only continue if parsing was successful.
