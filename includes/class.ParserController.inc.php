@@ -1272,7 +1272,7 @@ class ParserController
 						 * Eliminate colons from section numbers, since some OSes can't handle colons in
 						 * filenames.
 						 */
-						$filename = str_replace(':', '_', $law->section_number);
+						$filename = trim(str_replace(':', '_', $law->section_number), '.');
 
 						/*
 						 * Store the JSON file.
