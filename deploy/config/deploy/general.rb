@@ -7,15 +7,16 @@ namespace :world do
     'campaign',
     'charter',
     'elections',
-    'electrical',
+    #'electrical',
     'environment',
     'fire',
     'health',
-    'housing',
-    'mechanical',
+    #'housing',
+    #'mechanical',
     'park',
     'planning',
-    'plumbing',
+    #'plumbing',
+    'police',
     'port',
     'public-works',
     'subdivision',
@@ -25,11 +26,15 @@ namespace :world do
 
   task :deploy do
     env = ENV['ENV'] || 'staging'
-    branch = ENV['BRANCH'] || 'master'
     apps.each do |app|
+      # www only should ever deploy www.
+      branch = ENV['BRANCH'] || 'master'
+      if app == 'www'
+        branch = 'www'
+      end
       Capistrano::CLI.ui.say "deploying #{app}:#{env}"
       system("cap #{app}:#{env} branch='#{branch}' deploy")
-    end;
+    end
   end
 
 
@@ -38,7 +43,7 @@ namespace :world do
     apps.each do |app|
       Capistrano::CLI.ui.say "setting up #{app}:#{env}"
       system("cap #{app}:#{env} deploy:setup")
-    end;
+    end
   end
 
 end
