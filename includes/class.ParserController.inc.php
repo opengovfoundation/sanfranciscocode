@@ -1191,6 +1191,7 @@ class ParserController
 				 * Establish the path of our code JSON storage directory.
 				 */
 				$json_dir = $downloads_dir . 'code-json' . $url;
+				$this->mkdir($json_dir);
 
 				/*
 				 * Set a flag telling us that we may write JSON.
@@ -1201,6 +1202,7 @@ class ParserController
 				 * Establish the path of our code text storage directory.
 				 */
 				$text_dir = $downloads_dir . 'code-text' . $url;
+				$this->mkdir($text_dir);
 
 				/*
 				 * Set a flag telling us that we may write text.
@@ -1211,6 +1213,7 @@ class ParserController
 				 * Establish the path of our code XML storage directory.
 				 */
 				$xml_dir = $downloads_dir . 'code-xml' . $url;
+				$this->mkdir($xml_dir);
 
 				/*
 				 * Set a flag telling us that we may write XML.
@@ -1272,7 +1275,7 @@ class ParserController
 						 * Eliminate colons from section numbers, since some OSes can't handle colons in
 						 * filenames.
 						 */
-						$filename = trim(str_replace(':', '_', $law->section_number), '.');
+						$filename = str_replace(':', '_', $law->section_number);
 
 						/*
 						 * Store the JSON file.
@@ -1544,27 +1547,36 @@ class ParserController
 			/*
 			 * If the JSON directory doesn't exist, create it.
 			 */
-			if (!file_exists($this->downloads_dir . $data_dir))
+			$this->mkdir($this->downloads_dir . $data_dir);
+		}
+	}
+
+	public function mkdir($dir)
+	{
+
+			/*
+			 * If the directory doesn't exist, create it.
+			 */
+			if (!file_exists($dir))
 			{
 				/*
 				 * Build our directories recursively.
 				 * Don't worry about the mode, as our server's umask should handle
 				 * that for us.
 				 */
-				if(!mkdir($this->downloads_dir . $data_dir, 0777, true))
+				if(!mkdir($dir, 0777, true))
 				{
-					$this->logger->message('Cannot create directory "' . $this->downloads_dir . $data_dir . '"', 10);
+					$this->logger->message('Cannot create directory "' . $dir . '"', 10);
 				}
 			}
 
 			/*
 			 * If we cannot write to the JSON directory, log an error.
 			 */
-			if (!is_writable($this->downloads_dir . $data_dir))
+			if (!is_writable($dir))
 			{
-				$this->logger->message('Cannot write to "' . $data_dir . '"', 10);
+				$this->logger->message('Cannot write to "' . $dir . '"', 10);
 			}
-		}
 	}
 
 	/**
