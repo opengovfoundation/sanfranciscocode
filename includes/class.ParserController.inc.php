@@ -1283,8 +1283,12 @@ class ParserController
 							$success = file_put_contents($json_dir . $filename . '.json', json_encode($law));
 							if ($success === FALSE)
 							{
-								$this->logger->message('Could not write law JSON files', 9);
+								$this->logger->message('Could not write law JSON files "' . $json_dir . $filename . '.json' . '"', 9);
 								break;
+							}
+							else
+							{
+								$this->logger->message('Wrote file "'. $json_dir . $filename . '.json' .'"', 1);
 							}
 
 						}
@@ -1298,8 +1302,12 @@ class ParserController
 							$success = file_put_contents($text_dir . $filename . '.txt', $law->plain_text);
 							if ($success === FALSE)
 							{
-								$this->logger->message('Could not write law text files', 9);
+								$this->logger->message('Could not write law text files "' . $text_dir . $filename . '.txt', $law->plain_text . '"', 9);
 								break;
+							}
+							else
+							{
+								$this->logger->message('Wrote file "'. $json_dir . $filename . '.txt' .'"', 1);
 							}
 
 						}
