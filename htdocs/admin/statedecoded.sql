@@ -697,6 +697,7 @@ INSERT INTO `settings` (`name`, `value`, `date`) VALUES
 /* The following function was originally published at <http://www.mysql.com/tools/tool.php?id=107>,
   a no-longer-extant page, so the author is unknown. */
 DELIMITER $$
+DROP FUNCTION IF EXISTS `fromRoman`;
 CREATE FUNCTION `fromRoman`(inRoman varchar(15)) RETURNS int(11)
     DETERMINISTIC
 BEGIN
