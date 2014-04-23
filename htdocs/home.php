@@ -53,22 +53,23 @@ $body = '<!-- UNCOMMENT TO DISPLAY AN INTRODUCTORY VIDEO HERE
 
 					<ul class="code-sections-list">
 						<li><a href="http://administrative.'.BASE_SITE_DOMAIN.'/browse/">Administrative</a></li>
-						' . /*<!--li><a href="http://building.'.BASE_SITE_DOMAIN.'/browse/">Building</a></li>*/ '
+						<li><a href="http://building.'.BASE_SITE_DOMAIN.'/browse/">Building</a></li>
 						<li><a href="http://business.'.BASE_SITE_DOMAIN.'/browse/">Business</a></li>
 						<li><a href="http://campaign.'.BASE_SITE_DOMAIN.'/browse/">Campaign</a></li>
 						<li><a href="http://charter.'.BASE_SITE_DOMAIN.'/browse/">Charter</a></li>
 						<li><a href="http://elections.'.BASE_SITE_DOMAIN.'/browse/">Elections</a></li>
-						<li><a href="http://electrical.'.BASE_SITE_DOMAIN.'/browse/">Electrical</a></li>
+						<!--li><a href="http://electrical.'.BASE_SITE_DOMAIN.'/browse/">Electrical</a></li-->
 						<li><a href="http://environment.'.BASE_SITE_DOMAIN.'/browse/">Environment</a></li>
 						<li><a href="http://fire.'.BASE_SITE_DOMAIN.'/browse/">Fire</a></li>
 						<li><a href="http://health.'.BASE_SITE_DOMAIN.'/browse/">Health</a></li>
 					</ul>
-					<ul>
-						<li><a href="http://housing.'.BASE_SITE_DOMAIN.'/browse/">Housing</a></li>
-						<li><a href="http://mechanical.'.BASE_SITE_DOMAIN.'/browse/">Mechanical</a></li>
+					<ul class="code-sections-list">
+						<!--li><a href="http://housing.'.BASE_SITE_DOMAIN.'/browse/">Housing</a></li-->
+						<!--li><a href="http://mechanical.'.BASE_SITE_DOMAIN.'/browse/">Mechanical</a></li-->
 						<li><a href="http://park.'.BASE_SITE_DOMAIN.'/browse/">Park</a></li>
 						<li><a href="http://planning.'.BASE_SITE_DOMAIN.'/browse/">Planning</a></li>
-						<li><a href="http://plumbing.'.BASE_SITE_DOMAIN.'/browse/">Plumbing</a></li>
+						<!--li><a href="http://plumbing.'.BASE_SITE_DOMAIN.'/browse/">Plumbing</a></li-->
+						<li><a href="http://police.'.BASE_SITE_DOMAIN.'/browse/">Police</a></li>
 						<li><a href="http://port.'.BASE_SITE_DOMAIN.'/browse/">Port</a></li>
 						<li><a href="http://public-works.'.BASE_SITE_DOMAIN.'/browse/">Public Works</a></li>
 						<li><a href="http://subdivision.'.BASE_SITE_DOMAIN.'/browse/">Subdivision</a></li>
