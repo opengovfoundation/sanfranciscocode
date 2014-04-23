@@ -129,11 +129,11 @@
   .code-sections-list {
   	display: inline-block;
     vertical-align: top;
-  	width: 28%;
+  	width: 38%;
   	padding-left: 20%;
   	padding-right: 0;
 
-    &:nth-child(1) {
+    &:last-child {
     	width: 30%;
     	padding-left: 10%;
   	}

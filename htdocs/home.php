@@ -61,9 +61,9 @@ $body = '<!-- UNCOMMENT TO DISPLAY AN INTRODUCTORY VIDEO HERE
 						<!--li><a href="http://electrical.'.BASE_SITE_DOMAIN.'/browse/">Electrical</a></li-->
 						<li><a href="http://environment.'.BASE_SITE_DOMAIN.'/browse/">Environment</a></li>
 						<li><a href="http://fire.'.BASE_SITE_DOMAIN.'/browse/">Fire</a></li>
-						<li><a href="http://health.'.BASE_SITE_DOMAIN.'/browse/">Health</a></li>
 					</ul>
 					<ul class="code-sections-list">
+						<li><a href="http://health.'.BASE_SITE_DOMAIN.'/browse/">Health</a></li>
 						<!--li><a href="http://housing.'.BASE_SITE_DOMAIN.'/browse/">Housing</a></li-->
 						<!--li><a href="http://mechanical.'.BASE_SITE_DOMAIN.'/browse/">Mechanical</a></li-->
 						<li><a href="http://park.'.BASE_SITE_DOMAIN.'/browse/">Park</a></li>
