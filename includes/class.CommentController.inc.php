@@ -125,7 +125,7 @@ class CommentController extends BaseController
 			{
 				if(!$post->isFlagged && !$post->isSpam && !$post->isDeleted)
 				{
-					$content->append('body', '<li class="post" id="post- ' . $post->id  .' ">
+					$content->append('body', '<li class="post" id="post-' . $post->id  .'">
 						<div class="post-content">
 							<div class="avatar hovercard">
 								<a class="user" href="' . $post->author->profileUrl .
