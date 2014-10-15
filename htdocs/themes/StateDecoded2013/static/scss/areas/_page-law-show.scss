@@ -168,7 +168,7 @@
 
     float: right;
     padding: 20px;
-    width: 44%;
+    width: 39%;
 
     @include respond-to(smartphone) {
       float: none;
@@ -352,6 +352,10 @@
       } // &#legal_self_help
 
       &#history {}
+
+      &#social {
+      	padding: 1em;
+      }
 
       &#amendment_attempts {
         h2 {

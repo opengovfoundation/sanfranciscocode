@@ -19,6 +19,7 @@ class APIPermalinkController extends BaseAPIController
 
 	public function handle($args)
 	{
+	
 		/*
 		 * You must be authorized to use the API
 		 */
@@ -27,7 +28,7 @@ class APIPermalinkController extends BaseAPIController
 		/*
 		 * If the request is using JSONP, make sure there's a valid callback.
 		 */
-		if(!$this->checkCallback())
+		if (!$this->checkCallback())
 		{
 			return $this->handleBadCallback();
 		}
@@ -37,6 +38,7 @@ class APIPermalinkController extends BaseAPIController
 		 */
 		switch($args['operation'])
 		{
+		
 			case 'law' :
 			case 'structure' :
 				return $this->handlePermalinks($args);
@@ -52,6 +54,7 @@ class APIPermalinkController extends BaseAPIController
 
 			default :
 				return $this->handleNotFound($args);
+				
 		}
 
 	}
@@ -65,9 +68,11 @@ class APIPermalinkController extends BaseAPIController
 			global $db;
 
 			/*
-			 * Look up the route in the database
+			 * Look up the route in the database.
 			 */
-			$sql = 'SELECT * FROM permalinks WHERE url = :url LIMIT 1';
+			$sql = 'SELECT *
+					FROM permalinks
+					WHERE url = :url LIMIT 1';
 			$sql_args = array(
 				':url' => $args['route']
 			);
@@ -75,35 +80,31 @@ class APIPermalinkController extends BaseAPIController
 			$result = $statement->execute($sql_args);
 
 			/*
-			 * If we found a route
+			 * If we found a route.
 			 */
 			if ( $result !== FALSE )
 			{
+			
 				if ( $statement->rowCount() > 0 )
 				{
 
 					$route = $statement->fetch(PDO::FETCH_ASSOC);
 
 					/*
-					 * Try to intelligently determine if there's a matching controlelr
+					 * Try to determine intelligently if there's a matching controller.
 					 */
 					$object_name = 'API' .
 						str_replace(' ', '', ucwords($route['object_type'])) .
 						'Controller';
-					$filename = 'class.' . $object_name . '.inc.php';
 
-					/*
-					 * We use file_exists rather than class_exists, as the latter
-					 * will invoke the autoloader.
-					 */
-					if ( file_exists(INCLUDE_PATH . '/' . $filename) )
+					if ( class_exists($object_name) == TRUE)
 					{
 						$controller = new $object_name();
 						return $controller->handle($route);
 					}
 					else
 					{
-						trigger_error('Cannot find permalink class for object_type"' .
+						trigger_error('Cannot find permalink class for object_type "' .
 							$route['object_type'] . '"', E_USER_WARNING);
 					}
 				}
@@ -111,6 +112,7 @@ class APIPermalinkController extends BaseAPIController
 			}
 
 		}
+		
 		/*
 		 * If we did not get a route, assume we want all structures
 		 */

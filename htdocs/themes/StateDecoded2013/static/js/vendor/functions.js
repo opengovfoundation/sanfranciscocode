@@ -159,13 +159,15 @@ $(document).ready(function () {
 		},
 		position: {
 			at: "top center",
-			my: "bottom center"
+			my: "bottom center",
+			viewport: $(window)
 		}
 	})
 
-    // Set the base url once for use later.
-    // Note that document.location.origin is a chrome-only thing
-    // so far, so we can't use it.
+    /*
+     * Set the base URL once for use later.
+     * Note that document.location.origin is a Chrome-only thing so far, so we can't use it.
+     */
     var base_url;
     if ('https:' == document.location.protocol) {
         base_url = 'https://';
@@ -173,7 +175,7 @@ $(document).ready(function () {
     else {
         base_url = 'http://';
     }
-    // We want the port if it is set, so don't use hostname
+    /* We want the port if it is set, so don't use hostname */
     base_url += document.location.host;
 
 	/* Get each permalink and add a copy function on it */
@@ -207,9 +209,9 @@ $(document).ready(function () {
 				tip: "bottom left"
 			},
 			content: {
-				text: 'Loading .&thinsp;.&thinsp;.',
+				text: 'Loading . . .', // Those are U+2009, not regular spaces.
 				ajax: {
-					url: '/api/law/'+section_number,
+					url: '/api/law/' + section_number + '/',
 					type: 'GET',
 					data: { fields: 'catch_line,ancestry', key: api_key },
 					dataType: 'json',
@@ -247,7 +249,7 @@ $(document).ready(function () {
 				tip: "bottom left"
 			},
 			content: {
-				text: 'Loading .&thinsp;.&thinsp;.',
+				text: 'Loading . . .', // Those are U+2009, not regular spaces.
 				ajax: {
 					url: '/api/dictionary/' + encodeURI(term) + '/',
 					type: 'GET',

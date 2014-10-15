@@ -20,6 +20,7 @@ class BaseAPIController extends BaseController
 	 */
 	public function checkAuth()
 	{
+	
 		$api = new API;
 		$api->key = $_GET['key'];
 		try
@@ -31,6 +32,7 @@ class BaseAPIController extends BaseController
 			json_error($e->getMessage());
 			die();
 		}
+		
 	}
 
 	/**
@@ -38,11 +40,13 @@ class BaseAPIController extends BaseController
 	 */
 	public function handleNotFound($callback = null)
 	{
+	
 		$response = new StdClass();
 		$response->message = 'An error occurred';
 		$response->details = 'Could not find the requested resource';
 
 		return $this->render($response, 'NOT FOUND', $callback);
+		
 	}
 
 	/**
@@ -50,12 +54,18 @@ class BaseAPIController extends BaseController
 	 */
 	public function checkCallback()
 	{
+	
 		if (isset($_REQUEST['callback']))
 		{
-			# If this callback contains any reserved terms that raise XSS concerns, refuse to proceed.
+			/*
+			 * If this callback contains any reserved terms that raise XSS concerns, refuse to
+			 * proceed.
+			 */
 			return valid_jsonp_callback($_REQUEST['callback']);
 		}
-		return true;
+		
+		return TRUE;
+		
 	}
 
 	/**
@@ -75,11 +85,11 @@ class BaseAPIController extends BaseController
 	 */
 	public function render($response, $status)
 	{
-		$this->sendJSONHeaders($status);
+		$this->sendHeaders($status);
 
 		$this->setApiVersion($response);
 
-		if(isset($_REQUEST['callback']))
+		if (isset($_REQUEST['callback']))
 		{
 			$callback = filter_var($_REQUEST['callback'], FILTER_SANITIZE_STRING);
 		}
@@ -103,10 +113,12 @@ class BaseAPIController extends BaseController
 	/**
 	 * Send proper headers for the content type
 	 */
-	public function sendJSONHeaders($status = 'OK')
+	public function sendHeaders($status = 'OK')
 	{
+	
 		switch ($status)
 		{
+		
 			case 'BAD REQUEST':
 				header('HTTP/1.0 400 BAD REQUEST');
 				break;
@@ -118,9 +130,12 @@ class BaseAPIController extends BaseController
 			case 'OK':
 			default:
 				header("HTTP/1.0 200 OK");
+				
 		}
 
 		header('Content-type: application/json');
+		header("Access-Control-Allow-Origin: *");
+		
 	}
 
 	/**
@@ -128,6 +143,7 @@ class BaseAPIController extends BaseController
 	 */
 	public function setApiVersion(&$response)
 	{
+	
 		/*
 		 * Include the API version in this response.
 		 */
@@ -135,8 +151,10 @@ class BaseAPIController extends BaseController
 		{
 			$response->api_version = filter_var($_REQUEST['api_version'], FILTER_SANITIZE_STRING);
 		}
-		else {
+		else
+		{
 			$response->api_version = CURRENT_API_VERSION;
 		}
+		
 	}
 }

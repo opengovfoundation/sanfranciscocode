@@ -223,6 +223,10 @@ class Structure
 				}
 			}
 
+			if ( !isset($structure->{$prefix-1}) )
+			{
+				$structure->{$prefix-1} = new StdClass();
+			}
 			$structure->{$prefix-1}->$key = $value;
 
 		}
@@ -240,6 +244,12 @@ class Structure
 		 * Reverse the order of the elements of this object and place it in the scope of $this.
 		 */
 		$j=0;
+
+		if (!isset($this->structure) )
+		{
+			$this->structure = new StdClass();
+		}
+
 		for ($i=count((array) $structure)-1; $i>=0; $i--)
 		{
 
@@ -343,7 +353,7 @@ class Structure
 		else
 		{
 
-			$sql = 'SELECT id, name, identifier,
+			$sql = 'SELECT structure.id, structure.name, structure.identifier,
 					permalinks.url, permalinks.token
 					FROM structure
 					LEFT JOIN permalinks
@@ -467,12 +477,13 @@ class Structure
 			if (INCLUDES_REPEALED === TRUE)
 			{
 				$sql .= ' AND
-						(SELECT COUNT(*)
+						((SELECT COUNT(*)
 						FROM laws
 						LEFT OUTER JOIN laws_meta
 							ON laws.id = laws_meta.law_id AND laws_meta.meta_key = "repealed"
 						WHERE laws.structure_id=structure.id
-						AND ((laws_meta.meta_value = "n") OR laws_meta.meta_value IS NULL)  ) > 0';
+						AND ((laws_meta.meta_value = "n") OR laws_meta.meta_value IS NULL)  ) > 0
+						OR (SELECT COUNT(*) FROM structure AS s2 WHERE s2.parent_id = structure.id) > 0)';
 			}
 
 		}
@@ -649,6 +660,12 @@ class Structure
 			 * Assign this datum to an element within $tmp based on its prefix.
 			 */
 			$label = substr($column, 3);
+
+			if(!isset($ancestry->$prefix))
+			{
+				$ancestry->$prefix = new StdClass();
+			}
+
 			$ancestry->$prefix->$label = $cell;
 		}
 
