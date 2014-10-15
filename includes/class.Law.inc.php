@@ -369,7 +369,7 @@ class Law
 		}
 
 		/*
-		 * Get the amendment attempts for this law and include those (if there are any). But
+		 * Get the court decisions that affect this law and include those (if there are any). But
 		 * only if we have specifically requested this data. That's because, on most installations,
 		 * this will be making a call to a third-party service and such a call is expensive.
 		 */
@@ -483,7 +483,7 @@ class Law
 
 		$this->formats->txt = substr($this->url, 0, -1) . '.txt';
 		$this->formats->json = substr($this->url, 0, -1) . '.json';
-		$this->formats->json = substr($this->url, 0, -1) . '.xml';
+		$this->formats->xml = substr($this->url, 0, -1) . '.xml';
 
 		/*
 		 * Create metadata in the Dublin Core format.

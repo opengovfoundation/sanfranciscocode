@@ -61,20 +61,17 @@ abstract class AmericanLegalParser
 	public $structure_labels;
 
 	public $section_count = 1;
-	public $structure_depth = 1;
 
-	/*
-	 * Most codes have a Table of Contents as the first LEVEL.
-	 */
-	public $skip_toc = TRUE;
+	public $structures = array();
 
 	/*
 	 * Regexes.
+	 * These will need to be customized for your purposes.
 	 */
 	//                            | type of section                 |!temp!|    | section number                    (opt ' - section number')       |      | hyphen | catch line
-	public $section_regex = '/^\[?(?P<type>SEC(TION|S\.|\.)|APPENDIX|ARTICLE)\s+(?P<number>[0-9A-Z]+[0-9A-Za-z_\.\-]*(.?\s-\s[0-9]+[0-9A-Za-z\.\-]*)?)\.?\s*(?:-\s*)?(?P<catch_line>.*?)\.?\]?$/i';
+	public $section_regex = '/^\[?(?P<type>§|SEC(TION|S\.|\.)|APPENDIX|ARTICLE)\s+(?P<number>[0-9A-Z]+[0-9A-Za-z_\.\-]*(.?\s-\s[0-9]+[0-9A-Za-z\.\-]*)?)\.?\s*(?:-\s*)?(?P<catch_line>.*?)\.?\]?$/i';
 
-	public $structure_regex = '/^(?P<type>SEC(TION|S\.|\.)|APPENDIX|CHAPTER|ARTICLE)\s+(?P<number>[A-Za-z0-9\.]+)(:|.)\s*(?P<name>.*?)$/i';
+	public $structure_regex = '/^(?P<type>SECS\.|APPENDIX|CHAPTER|ARTICLE|TITLE|SUBCODE)\s+(?P<number>[A-Za-z0-9\-\.]+)(?:[:\. -]+)(?P<name>.*?)$/i';
 
 	public $appendix_regex = '/^APPENDI(CES|X):\s+(?P<name>.*?)$/i';
 
@@ -228,6 +225,11 @@ abstract class AmericanLegalParser
 					continue;
 				}
 			}
+			else
+			{
+				$this->logger->message('Ignoring "' . $filename . '"', 3);
+				continue;
+			}
 		}
 
 	} // end iterate() function
@@ -278,7 +280,8 @@ abstract class AmericanLegalParser
 	 */
 	public function parse()
 	{
-		$this->structure_depth = 0;
+		unset($this->structures);
+		$this->structures = array();
 
 		/*
 		 * If a section of code hasn't been passed to this, then it's of no use.
@@ -289,18 +292,9 @@ abstract class AmericanLegalParser
 		}
 
 		/*
-		 * AM Legal gives a chapter at a time, which we break up
-		 * and parse.
-		 */
-		$structures = array();
-
-		/*
 		 * The first child LEVEL we encounter is actually the table of contents, so we skip it.
 		 */
-		if(method_exists($this, 'pre_parse_chapter'))
-		{
-			$this->pre_parse_chapter($this->chapter, $structures);
-		}
+		$this->pre_parse_chapter($this->chapter);
 
 		/*
 		 * The real chapter starts at the first level.
@@ -312,74 +306,115 @@ abstract class AmericanLegalParser
 		 */
 		$this->sections = array();
 		$this->section_count = 1;
-		$this->parse_recurse($chapter, $structures);
+
+		$this->parse_recurse($chapter);
 	}
 
-	public function parse_recurse($level, $structures)
+	/**
+	 * In most cases, there will be a table of contents that we want to drop.
+	 */
+
+	public function pre_parse_chapter(&$chapter)
+	{
+		// If there's more than one title, this has a table of contents.
+		if(count($chapter->REFERENCE->TITLE) > 1)
+		{
+			$this->logger->message('Skipping first level.', 2);
+			unset($chapter->LEVEL->LEVEL[0]);
+		}
+	}
+
+	public function parse_recurse($levels)
 	{
 		$this->logger->message('parse_recurse', 1);
 
-		/*
-		 * Check to see if we have another layer of nesting
-		 */
-		if(isset($level->LEVEL))
+		if(is_array($levels))
 		{
+			foreach($levels as $level) {
+				$this->parse_recurse($level);
+			}
+		}
+		else {
+			$level = $levels;
+
+
+			$title = (string) $level->RECORD->HEADING;
+
 			/*
-			 * If we have two levels deeper, this is a structure.
+			 * Check to see if we have another layer of nesting
 			 */
-			if(count($level->xpath('./LEVEL/LEVEL')))
+			if(isset($level->LEVEL))
 			{
-				$structure = FALSE;
+				/*
+				 * If we have two levels deeper, this is a structure.
+				 */
+				if(count($level->xpath('./LEVEL/LEVEL')) || preg_match($this->structure_regex, $title))
+				{
+					$structure = FALSE;
 
-				$this->logger->message('STRUCTURE', 1);
+					$this->logger->message('STRUCTURE', 2);
 
-				// If we have a structure heading, add it to the structures.
-				if(count($level->xpath($this->structure_heading_xpath))) {
-					$this->structure_depth++;
+					// If we have a structure heading, add it to the structures.
+					if(count($level->xpath($this->structure_heading_xpath))) {
+						$structure = $this->parse_structure( $level );
 
-					$structure = $this->parse_structure( $level );
+						if($structure) {
+							$this->logger->message('Descending : ' . $structure->name, 2);
 
+							$previous_structure = end($this->structures);
+
+							if($previous_structure)
+							{
+								$structure->parent_id = $previous_structure->id;
+							}
+
+							$this->create_structure($structure);
+
+							$this->structures[] = $structure;
+
+						}
+					}
+					foreach($level->LEVEL as $sublevel)
+					{
+						// But recurse, either way.
+						$this->parse_recurse($sublevel);
+					}
+
+					// If we had a structure heading, pop it from the structures.
 					if($structure) {
-						$this->logger->message('Descending : ' . $structure->name, 1);
+						$this->logger->message('Ascending', 2);
 
-						$structures[] = $structure;
+						array_pop($this->structures);
 					}
 				}
-				foreach($level->LEVEL as $sublevel)
+				/*
+				 * If we have one level deeper, this is a section.
+				 */
+				else
 				{
-					// But recurse, either way.
-					$this->parse_recurse($sublevel, $structures);
-				}
+					$this->logger->message('SECTION', 2);
 
-				// If we had a structure heading, pop it from the structures.
-				if($structure) {
-					$this->logger->message('Ascending', 1);
+					$new_section = $this->parse_section($level, $structures);
 
-					$this->structure_depth--;
-					array_pop($structures);
+					if($new_section)
+					{
+						$this->sections[] = $new_section;
+					}
+					else {
+						/*
+						 * See if maybe we have a structure after all.
+						 */
+						// TODO
+					}
 				}
 			}
 			/*
-			 * If we have one level deeper, this is a section.
+			 * If we have no children, somehow we've gone too far!
 			 */
 			else
 			{
-				$this->logger->message('SECTION', 1);
-
-				$new_section = $this->parse_section($level, $structures);
-
-				if($new_section)
-				{
-					$this->sections[] = $new_section;
-				}
+				$this->logger->message('Empty', 1);
 			}
-		}
-		/*
-		 * If we have no children, somehow we've gone too far!
-		 */
-		else
-		{
-			$this->logger->message('Empty', 1);
 		}
 
 		$this->logger->message('Exit parse_recurse', 1);
@@ -387,76 +422,40 @@ abstract class AmericanLegalParser
 
 	public function parse_structure($level)
 	{
-		$structure_name = (string) $level->RECORD->HEADING;
-
-		$structure = FALSE;
-
-		if(preg_match($this->structure_regex, $structure_name, $chapter_parts))
-		{
-			$this->logger->message('Structure name: ' . $structure_name, 1);
-
-			$structure = new stdClass();
-			$structure->metadata = new stdClass();
-
-			if(isset($chapter_parts['name']) && strlen(trim($chapter_parts['name'])))
-			{
-				$structure->name = $chapter_parts['name'];
-			}
-			else
-			{
-				$structure->name = $structure_name;
-			}
-			$structure->label = ucwords(strtolower($chapter_parts['type']));
-
-			if(!$structure->label)
-			{
-				$structure->label = 'Structure';
-			}
-		}
-		elseif(preg_match($this->appendix_regex, $structure_name, $chapter_parts))
-		{
-			$this->logger->message('Appendix name: ' . $structure_name, 1);
-
-			$structure = new stdClass();
-			$structure->name = $chapter_parts['name'];
-			// Make up an identifier.
-			// Right now, there's only one!
-			//$structure->identifier = 'A' . self::$appendix_count;
-			$structure->label = 'Appendix';
-
-			self::$appendix_count++;
-		}
-		else
-		{
-			$this->logger->message('Failed to match structure title: ' . $structure_name, 1);
-		}
+		$structure = $this->pre_parse_structure($level);
 
 		if($structure)
 		{
 			/*
 			 * Set the level.
 			 */
-			$structure->level = $this->structure_depth;
+			$structure->level = count($this->structures) + 1;
+			$structure->edition_id = $this->edition_id;
 
-
-			if($structure->label == 'Appendix')
+			if(!isset($structure->identifier))
 			{
-				if($chapter_parts['number'])
+				$this->logger->message('No identifier, so creating one for "'. $structure->name . '"', 3);
+
+				$structure->identifier = $this->clean_identifier(preg_replace('/[^a-zA-Z0-9- ]/m', '', $structure->name));
+
+				if(strlen($structure->identifier) > 16)
 				{
-					$structure->identifier = $chapter_parts['number']; // Put these at the end.
+					$this->logger->message('Identifier is longer than 16 characters and will be truncated!', 3);
 				}
-				else
+
+				if(strtolower($structure->label) === 'appendix' &&
+					strtolower(substr($structure->identifier, 0, 8)) !== 'appendix')
 				{
-					$structure->identifier = 'appendix';
+					$this->logger->message('Overriding Appendix', 2);
+
+					$structure->identifier = 'Appendix ' . $this->clean_identifier($structure->identifier);
 				}
-				$structure->order_by = '1' . str_pad(self::$appendix_count, 3, '0', STR_PAD_LEFT);
-			}
-			else
-			{
-				$structure->identifier = $chapter_parts['number'];
-				$structure->order_by = str_pad($chapter_parts['number'], 4, '0', STR_PAD_LEFT);
 			}
 
+			if(!isset($structure->order_by))
+			{
+				$structure->order_by = $this->get_structure_order_by($structure);
+			}
 
 			/*
 			 * Check to see if this structure has text of its own.
@@ -518,34 +517,113 @@ abstract class AmericanLegalParser
 
 		$this->logger->message('Structure Data: ' . print_r($structure, TRUE), 1);
 
+		$structure = $this->post_parse_structure($level, $structure);
+
 		return $structure;
 	}
 
-	public function parse_section($section, $structures)
+	/**
+	 * We may want to do custom handling based on any number of
+	 * different aspect of this element. These next two methods
+	 * open up for extension.
+	 */
+	public function pre_parse_structure($level)
+	{
+		/*
+		 * The minimum structure that must be yielded from this function:
+		 *
+		 * $structure = new stdClass();
+		 * $structure->name = 'My Structure';
+		 * $structure->identifier = 'MyStruct';
+		 * $structure->label = 'structure';
+		 * return $structure;
+		 */
+
+		$structure_name = $this->clean_title((string) $level->RECORD->HEADING);
+		$structure = FALSE;
+
+		if(preg_match($this->structure_regex, $structure_name, $chapter_parts))
+		{
+			$this->logger->message('Structure name: ' . $structure_name, 1);
+
+			$structure = new stdClass();
+			$structure->metadata = new stdClass();
+
+			if(isset($chapter_parts['name']) && strlen(trim($chapter_parts['name'])))
+			{
+				$structure->name = $chapter_parts['name'];
+			}
+			else
+			{
+				$structure->name = $structure_name;
+			}
+			$structure->label = ucwords(strtolower($chapter_parts['type']));
+
+			if(!$structure->label)
+			{
+				$structure->label = 'Structure';
+			}
+		}
+		elseif(preg_match($this->appendix_regex, $structure_name, $chapter_parts))
+		{
+			$this->logger->message('Appendix name: ' . $structure_name, 1);
+
+			$structure = new stdClass();
+			$structure->name = $chapter_parts['name'];
+
+			$structure->label = 'Appendix';
+
+			self::$appendix_count++;
+		}
+		else
+		{
+			$this->logger->message('Failed to match structure title: ' . $structure_name, 3);
+		}
+
+		if($chapter_parts['number'])
+		{
+			if(substr($chapter_parts['number'], -1, 1) == '.')
+			{
+				$chapter_parts['number'] = substr($chapter_parts['number'], 0, -1);
+			}
+
+			$structure->identifier = $this->clean_identifier($chapter_parts['number']); // Put these at the end.
+		}
+
+		return $structure;
+	}
+
+	public function post_parse_structure($level, $structure)
+	{
+		return $structure;
+	}
+
+	public function parse_section($section)
 	{
 		$code = new stdClass();
 
-		$code->structure = $structures;
+		$structure = end($this->structures);
+		$code->structure_id = $structure->id;
 
-		/*
-		 * Parse the catch line and section number.
-		 */
-		$section_title = trim((string) $section->RECORD->HEADING);
-
-		$this->logger->message('Title: ' . $section_title, 1);
-
-		preg_match($this->section_regex, $section_title, $section_parts);
+		$section_parts = $this->get_section_parts($section);
 
 		if(!isset($section_parts['number']) || !isset($section_parts['catch_line']))
 		{
-			// TODO: Handle this error somewhat more gracefully.
-			$this->logger->message('Could not get Section info from title, "' . $section_title . '"', 5);
+			$this->logger->message('Could not get Section info from title, "' . (string) $section->RECORD->HEADING . '"', 5);
+
+			$section_title = trim((string) $section->RECORD->HEADING);
+
+			$code->section_number = $section_title;
+			$code->catch_line = $section_title;
+		}
+		else
+		{
+			$code->section_number = $section_parts['number'];
+			$code->catch_line = $section_parts['catch_line'];
 		}
 
-		$code->section_number = $section_parts['number'];
-
-		$code->catch_line = $section_parts['catch_line'];
-
+		$code->section_number = $this->clean_identifier($code->section_number);
+		$code->catch_line = $this->clean_identifier($code->catch_line);
 
 		/*
 		 * If this is an appendix, use the whole line as the title.
@@ -636,15 +714,43 @@ abstract class AmericanLegalParser
 		}
 		else
 		{
-			$this->logger->message('Invalid section: ' . print_r($code, TRUE), 1);
+			$this->logger->message('Invalid section: ' . print_r($code, TRUE), 2);
 			return FALSE;
 		}
+	}
+
+	public function get_section_parts($section)
+	{
+		/*
+		 * Parse the catch line and section number.
+		 */
+		$section_title = trim((string) $section->RECORD->HEADING);
+
+		$this->logger->message('Title: ' . $section_title, 1);
+
+		preg_match($this->section_regex, $section_title, $section_parts);
+
+		return $section_parts;
 	}
 
 	/**
 	 * Wrap up the convoluted logic for creating the order_by value.
 	 * Feel free to override this, but keep in mind it's a natural sort.
 	 */
+
+	public function get_structure_order_by($structure)
+	{
+		if($structure->label == 'Appendix')
+		{
+			$order_by = '1' . str_pad(self::$appendix_count, 3, '0', STR_PAD_LEFT);
+		}
+		else
+		{
+			$order_by = str_pad($structure->identifier, 4, '0', STR_PAD_LEFT);
+		}
+
+		return $order_by;
+	}
 
 	public function get_section_order_by($code)
 	{
@@ -785,9 +891,23 @@ abstract class AmericanLegalParser
 
 	public function clean_title($text)
 	{
+		// We often see <LINEBRK/> inside of titles.
 		$text = str_replace('<LINEBRK/>', ' ', $text);
 
+		// Sometimes, different parts of the code will have different
+		// numbers of spaces in the title.
+		$text = preg_replace('/\s+/', ' ', $text);
+
+		// Default cleaning.
+		$text = $this->clean_identifier($text);
+
 		return $text;
+	}
+
+	public function clean_identifier($text)
+	{
+		// Trim the text for any spaces or periods.
+		return trim($text, ". \t\n\r\0\x0B");
 	}
 
 	/**
@@ -1076,42 +1196,6 @@ abstract class AmericanLegalParser
 		 * content of it just yet.
 		 */
 
-		/*
-		 * Try to create this section's structural element(s). If they already exist,
-		 * create_structure() will handle that silently. Either way a structural ID gets returned.
-		 */
-		$structure = new Parser(
-			array(
-				'db' => $this->db,
-				'logger' => $this->logger,
-				'edition_id' => $this->edition_id,
-				'structure_labels' => $this->structure_labels
-			)
-		);
-
-		foreach ($this->code->structure as $struct)
-		{
-
-			$structure->identifier = $struct->identifier;
-			$structure->name = $struct->name;
-			$structure->label = $struct->label;
-			$structure->level = $struct->level;
-			$structure->order_by = $struct->order_by;
-			$structure->metadata = $struct->metadata;
-
-			/* If we've gone through this loop already, then we have a parent ID. */
-			if (isset($this->code->structure_id) && $this->code->structure_id > 0)
-			{
-				$structure->parent_id = $this->code->structure_id;
-			}
-			$this->code->structure_id = $structure->create_structure();
-
-		}
-
-		/*
-		 * When that loop is finished, because structural units are ordered from most general to
-		 * most specific, we're left with the section's parent ID. Preserve it.
-		 */
 		$query['structure_id'] = $this->code->structure_id;
 
 		/*
@@ -1472,10 +1556,10 @@ abstract class AmericanLegalParser
 	 * When provided with a structural identifier, verifies whether that structural unit exists.
 	 * Returns the structural database ID if it exists; otherwise, returns false.
 	 */
-	public function structure_exists()
+	public function structure_exists($structure)
 	{
 
-		if (!isset($this->identifier))
+		if (!isset($structure->identifier))
 		{
 			return FALSE;
 		}
@@ -1488,18 +1572,18 @@ abstract class AmericanLegalParser
 				WHERE identifier = :identifier
 				AND edition_id = :edition_id';
 		$sql_args = array(
-			':identifier' => $this->identifier,
-			':edition_id' => $this->edition_id
+			':identifier' => $structure->identifier,
+			':edition_id' => $structure->edition_id
 		);
 
 		/*
 		 * If a parent ID is present (that is, if this structural unit isn't a top-level unit), then
 		 * include that in our query.
 		 */
-		if ( !empty($this->parent_id) )
+		if ( !empty($structure->parent_id) )
 		{
 			$sql .= ' AND parent_id = :parent_id';
-			$sql_args[':parent_id'] = $this->parent_id;
+			$sql_args[':parent_id'] = $structure->parent_id;
 		}
 		else
 		{
@@ -1514,10 +1598,9 @@ abstract class AmericanLegalParser
 			return FALSE;
 		}
 
-		$structure = $statement->fetch(PDO::FETCH_OBJ);
-		return $structure->id;
+		$found_structure = $statement->fetch(PDO::FETCH_OBJ);
+		return $found_structure->id;
 	}
-
 
 	/**
 	 * When provided with a structural unit identifier and type, it creates a record for that
@@ -1525,9 +1608,12 @@ abstract class AmericanLegalParser
 	 * provided with a $parent_id, which is the ID of the parent structural unit. Most structural
 	 * units will have a name, but not all.
 	 */
-	function create_structure()
+	public function create_structure(&$structure)
 	{
-
+		if(!isset($structure->edition_id))
+		{
+			$structure->edition_id = $this->edition_id;
+		}
 		/*
 		 * Sometimes the code contains references to no-longer-existent chapters and even whole
 		 * titles of the code. These are void of necessary information. We want to ignore these
@@ -1542,22 +1628,25 @@ abstract class AmericanLegalParser
 		 * empty.
 		 */
 		if (
-				( empty($this->identifier) && (strlen($this->identifier) === 0) )
+				( empty($structure->identifier) && (strlen($structure->identifier) === 0) )
 				||
-				( empty($this->label) )
+				( empty($structure->label) )
 			)
 		{
-			$this->logger->message('Can\'t create structure "' . $this->name . '"', 5);
+			$this->logger->message('Can\'t create structure "' . $structure->name . '" "' .
+				$structure->identifier . '" "' . $structure->label . '"', 5);
 			return FALSE;
 		}
 
 		/*
 		 * Begin by seeing if this structural unit already exists. If it does, return its ID.
 		 */
-		$structure_id = $this->structure_exists();
+		$structure_id = $this->structure_exists($structure);
 		if ($structure_id !== FALSE)
 		{
-			$this->logger->message('Structure_exists "' . $this->name . '"', 1);
+			$this->logger->message('Structure_exists "' . $structure->name . '"', 1);
+
+			$structure->id = $structure_id;
 			return $structure_id;
 		}
 
@@ -1571,46 +1660,40 @@ abstract class AmericanLegalParser
 		$sql = 'INSERT INTO structure
 				SET identifier = :identifier';
 		$sql_args = array(
-			':identifier' => $this->identifier
+			':identifier' => $structure->identifier
 		);
-		if (!empty($this->name))
+		if (!empty($structure->name))
 		{
 			$sql .= ', name = :name';
-			$sql_args[':name'] = $this->name;
+			$sql_args[':name'] = $structure->name;
 		}
 		$sql .= ', label = :label, edition_id = :edition_id';
 		$sql .= ', depth = :depth, order_by = :order_by';
 		$sql .= ', date_created=now()';
-		$sql_args[':label'] = $this->label;
-		$sql_args[':edition_id'] = $this->edition_id;
-		$sql_args[':depth'] = $this->level;
-		$sql_args[':order_by'] = $this->order_by;
-		if (isset($this->parent_id))
+		$sql_args[':label'] = $structure->label;
+		$sql_args[':edition_id'] = $structure->edition_id;
+		$sql_args[':depth'] = $structure->level;
+		$sql_args[':order_by'] = $structure->order_by;
+		if (isset($structure->parent_id))
 		{
 			$sql .= ', parent_id = :parent_id';
-			$sql_args[':parent_id'] = $this->parent_id;
+			$sql_args[':parent_id'] = $structure->parent_id;
 
 		}
-		if(isset($this->metadata))
+		if(isset($structure->metadata))
 		{
 			$sql .= ', metadata = :metadata';
-			$sql_args[':metadata'] = serialize($this->metadata);
+			$sql_args[':metadata'] = serialize($structure->metadata);
 		}
 
-		$this->logger->message('Structure created: "' . $this->name . '"', 1);
+		$this->logger->message('Structure created: "' . $structure->name . '"', 2);
 
 		$statement = $this->db->prepare($sql);
-		$result = $statement->execute($sql_args);
+		$statement->execute($sql_args);
 
-		if ($result === FALSE)
-		{
-			echo '<p>Failure: '.$sql.'</p>';
-			var_dump($sql_args);
-			return FALSE;
-		}
+		$structure->id = $this->db->lastInsertID();
 
-		return $this->db->lastInsertID();
-
+		return $structure->id;
 	}
 
 
