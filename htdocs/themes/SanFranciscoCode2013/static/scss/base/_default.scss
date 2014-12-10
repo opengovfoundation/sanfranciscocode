@@ -34,7 +34,7 @@ body {
     min-height: 100%;
     text-align: left;
     &.preload * {
-      transition: none !important;
+      /* transition: none !important; */
     }
 
     @include respond-to(print) {
