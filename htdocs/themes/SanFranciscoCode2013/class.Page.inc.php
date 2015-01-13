@@ -26,7 +26,7 @@ class SanFranciscoCode2013__Page extends Page
 		'main_css' => array(
 			'path' => '/css/application.css',
 			'type' => 'css',
-			'requires' => array('font_awesome_css')
+			'requires' => array('font_awesome_css', 'datatables_css')
 		),
 		'jquery_ui_css' => array(
 			'path' => '//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css',
@@ -77,6 +77,16 @@ class SanFranciscoCode2013__Page extends Page
 		'masonry_js' => array(
 			'path' => '/js/vendor/masonry.pkgd.min.js',
 			'type' => 'javascript'
+		),
+		'datatables' => array(
+			'path' => '//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js',
+			'type' => 'javascript',
+			'requires' => array('jquery')
+		),
+		'datatables_css' => array(
+			'path' => '//cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css',
+			'type' => 'css',
+			'requires' => array('datatables')
 		),
 		'main_js' => array(
 			'path' => '/js/vendor/functions.js',

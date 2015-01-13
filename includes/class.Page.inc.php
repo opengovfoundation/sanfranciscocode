@@ -253,6 +253,10 @@ class Page
 	{
 
 		$type = $asset['type'];
+		if(!isset($collated_assets[$type]))
+		{
+			$collated_assets[$type] = array();
+		}
 
 		/*
 		 * Resolve requirements.
@@ -277,10 +281,6 @@ class Page
 					 */
 					$resolved_path = $this->assets[$required]['resolved_path'];
 					$asset_type = $this->assets[$required]['type'];
-					if(!isset($collated_assets[$type]))
-					{
-						$collated_assets[$type] = array();
-					}
 
 					if (!in_array(
 						$resolved_path,
@@ -300,7 +300,10 @@ class Page
 		 * The easy part - just add the asset.
 		 * We collate these into types, for ease of display.
 		 */
-		$collated_assets[ $type ][] = $asset['resolved_path'];
+		if(!in_array($asset['resolved_path'], $collated_assets[ $type ]))
+		{
+			$collated_assets[ $type ][] = $asset['resolved_path'];
+		}
 
 		return $collated_assets;
 
