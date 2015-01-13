@@ -15,6 +15,9 @@ Router::addRoute('^/$', 'home.php');
 // About page
 Router::addRoute('^/about/?(.*)', 'about.php');
 
+// Map
+Router::addRoute('^/map/$', array('MapController', 'index'));
+
 // Admin section
 Router::addRoute('^/admin/?(.*)', 'admin/index.php');
 
