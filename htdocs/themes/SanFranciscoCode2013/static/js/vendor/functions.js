@@ -340,17 +340,14 @@ $(document).ready(function () {
 		var maxsize = 0;
 		var trs = elm.find('tr');
 		trs.each(function(i, tr) {
-			console.log(i, $(tr).find('td,th').length);
 			if($(tr).find('td,th').length > maxsize) {
 				maxsize = $(tr).find('td,th').length;
 			}
 		});
-		console.log('Maxsize: ', maxsize);
 
+		// Repeat the loop, this time padding out our rows
 		trs.each(function(i, tr) {
 			var tr = $(tr);
-			console.log(i, tr.find('td,th').length);
-
 			var missing = maxsize - tr.find('td,th').length;
 			if(missing > 0) {
 				var extra_elms = '<td></td>';
@@ -358,16 +355,11 @@ $(document).ready(function () {
 				{
 					extra_elms = '<th></th>';
 				}
-
 				for(i=0; i<missing; i++) {
 					tr.append(extra_elms);
 				}
 			}
 		});
-
-
-
-		// Repeat the loop, this time padding out our rows
 	});
 
 
