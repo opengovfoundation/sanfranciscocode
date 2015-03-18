@@ -31,6 +31,7 @@ set :repository,  "git@github.com:opengovfoundation/sanfranciscocode.git"
 set :user, "deploy"
 set :group, "staff"
 set :use_sudo, false
+ssh_options[:forward_agent] = true
 
 set(:deploy_to) { "/var/www/releases/#{application}/#{site}/#{stage}" }
 
