@@ -38,7 +38,7 @@ if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW']) ||
         <big>Wrong Username or Password</big>
         </body></html>';
     exit;
-    
+
 }
 
 /*
@@ -135,8 +135,8 @@ elseif ($_POST['action'] == 'parse')
 			else
 			{
 
-				$parser->clear_apc();
 				$parser->setup_directories();
+				$parser->clear_cache();
 
 				/*
 				 * We should only continue if parsing was successful.
@@ -190,14 +190,14 @@ elseif ($_POST['action'] == 'permalinks')
 
 }
 
-elseif ($_POST['action'] == 'apc')
+elseif ($_POST['action'] == 'cache')
 {
 
 	ob_start();
 
-	echo 'Clearing APC cache<br />';
+	echo 'Clearing in-memory cache<br />';
 
-	$parser->clear_apc();
+	$parser->clear_cache();
 
 	echo 'Done<br />';
 
@@ -434,17 +434,20 @@ function show_admin_forms($args = array())
 	</form>';
 
 	/*
-	 * If APC is running, provide an option to clear the cache.
+	 * If Memcached / Redis is in use, provide an option to clear the cache.
 	 */
-	if (APC_RUNNING === TRUE)
+	global $cache;
+	if (isset($cache))
 	{
+
 		$body .= '
 			<form method="post" action="/admin/?page=parse&noframe=1">
-				<h3>Clear the APC Cache</h3>
-				<p>Delete all data currently stored in APC.</p>
-				<input type="hidden" name="action" value="apc" />
-				<input type="submit" value="Clear APC Cache" />
+				<h3>Clear the In-Memory Cache</h3>
+				<p>Delete all data currently stored in Memcached or Redis.</p>
+				<input type="hidden" name="action" value="cache" />
+				<input type="submit" value="Clear Cache" />
 			</form>';
+
 	}
 
 	return $body;

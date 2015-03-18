@@ -377,12 +377,15 @@ class API
 		}
 
 		/*
-		 * If APC is installed, then delete the cache of the keys, since it's been invalidated by
-		 * the addition of this key.
+		 * If an in-memory cache is running, then delete the cache of the keys, since it's been
+		 * invalidated by the addition of this key.
 		 */
-		if ( extension_loaded('apc') || (ini_get('apc.enabled') === 1) )
+		global $cache;
+		if (isset($cache))
 		{
-			apc_delete('api_keys');
+			
+			$cache->erase('api_keys');
+			
 		}
 
 		return TRUE;

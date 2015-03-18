@@ -35,7 +35,7 @@
        that you fully re-index after changing this setting as it can
        affect both how text is indexed and queried.
   -->
-  <luceneMatchVersion>LUCENE_43</luceneMatchVersion>
+  <luceneMatchVersion>LUCENE_4_10_2</luceneMatchVersion>
 
 
 
@@ -863,7 +863,8 @@
                          catch_line
                                tags
                                text
-                          structure
+                          structure^5
+                            section^10
                    section_ancestor^10 <!--High weighting on this field ensures that exact section matches are boosted to the top.-->
                  section_descendent^10 <!--High weighting on this field ensures that exact section matches are boosted to the top.-->
                refers_to_descendent

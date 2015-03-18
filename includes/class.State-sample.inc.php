@@ -68,7 +68,7 @@ class State
 		return TRUE;
 	}
 	*/
-
+	
 	/**
 	 * Retrieve a list of every attempt to amend a law
 	 *
@@ -79,13 +79,13 @@ class State
 	 * @return true or false
 	 */
 	/*function get_amendment_attempts()
-	{
-
+	{	
+		
 		if (!isset($this->section_number))
 		{
 			return FALSE;
 		}
-
+		
 		# Below is an example of how $this->bills should be formatted. Every field must be present,
 		# and they should be sorted chronologically, from most oldest to newest.
 		#
@@ -99,7 +99,7 @@ class State
 		#					[outcome] => passed
 		#					[url] => http://www.richmondsunlight.com/bill/2009/sb1316/
 		#				)
-		#
+		#		
 		#			[1] => stdClass Object
 		#				(
 		#					[year] => 2010
@@ -108,7 +108,7 @@ class State
 		#					[outcome] => failed
 		#					[url] => http://www.richmondsunlight.com/bill/2010/hb449/
 		#				)
-		#
+		#		
 		#			[2] => stdClass Object
 		#				(
 		#					[year] => 2010
@@ -117,17 +117,17 @@ class State
 		#					[outcome] => passed
 		#					[url] => http://www.richmondsunlight.com/bill/2010/hb518/
 		#				)
-
+		
 		return TRUE;
-
+		
 	} // end get_amendment_attempts()
 	*/
-
+	
 	/**
 	 * Retrieve a list of every court decision that cites a given law.
 	 *
 	 * A customization is necessary to get this working for your legal code.
-	 *
+	 * 
 	 * You need to experiment with searches on CourtListener and figure out how to build a query
 	 * that will return court decisions that refer to your legal code. In the below example, for
 	 * Virginia, we've created $url by prefixing the section number query with "Virginia Code" (URL
@@ -137,7 +137,7 @@ class State
 	 * displayed for each ruling, which can look better if abbreviated. You can modify the example
 	 * Virginia text that's provided. Or, if you do nothing, the entire court name will be
 	 * displayed.
-	 *
+	 * 
 	 * @return true or false
 	 */
 	/*function get_court_decisions()
@@ -148,11 +148,12 @@ class State
 		{
 			return FALSE;
 		}
-
+		
 		// Assemble the URL for our query to the CourtListener API.
-		$url = 'https://www.courtlistener.com/api/rest/v1/search/?q=Virginia+Code+%22'
-			. urlencode($this->section_number) . '%22&order_by=score+desc&format=json';
-
+		$url = 'https://www.courtlistener.com/api/rest/v1/search/?q="'
+			. urlencode($this->section_number) . '"&court=ca4,vaeb,vawb,vaed,vawd,va,vactapp'
+			. '&order_by=score+desc&format=json';
+		
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
 		curl_setopt($ch, CURLOPT_TIMEOUT_MS, 1200);
@@ -164,77 +165,93 @@ class State
 		curl_setopt($ch, CURLOPT_PROTOCOLS, $allowed_protocols);
 		curl_setopt($ch, CURLOPT_REDIR_PROTOCOLS, $allowed_protocols & ~(CURLPROTO_FILE | CURLPROTO_SCP));
 		$json = curl_exec($ch);
-
+		
 		// If the query failed.
 		if ($json == FALSE)
 		{
 			return FALSE;
 		}
-
+		
 		// Turn this JSON into an object.
 		$cl_list = json_decode($json);
-
+		
 		// If the JSON is invalid.
 		if ($cl_list == FALSE)
 		{
 			return FALSE;
 		}
-
-		// If no results were found.
+		
+		// If no results were found, save an empty variable. In this way we cache a lack of court
+		// decisions that cite a given section.
 		if ($cl_list->meta->total_count == 0)
 		{
-			return FALSE;
+		
+			$this->decisions = '';
+			
 		}
-
-		// Create an object to store the decisions that we're going to return.
-		$this->decisions = new stdClass();
-
-		// Iterate through the decisions and assign the first 10 to $this->decisions.
-		$i=0;
-		foreach ($cl_list->objects as $opinion)
+		
+		// Otherwise if results were found.
+		else
 		{
-
-			if ($i == 10)
+		
+			// Create an object to store the decisions that we're going to return.
+			$this->decisions = new stdClass();
+		
+			// Iterate through the decisions and assign the first 10 to $this->decisions.
+			$i=0;
+			foreach ($cl_list->objects as $opinion)
 			{
-				break;
+			
+				if ($i == 10)
+				{
+					break;
+				}
+			
+				// Port the fields that we need from $opinion to $this->decisions.
+				if (html_entity_decode(strlen(strip_tags($opinion->case_name))) > 60)
+				{
+					$this->decisions->{$i}->name = ' . . . ' . array_shift(explode("\n", wordwrap(html_entity_decode(strip_tags($opinion->case_name)), 60))) . ' . . . ';
+				}
+				else
+				{
+					$this->decisions->{$i}->name = html_entity_decode(strip_tags($opinion->case_name));
+				}
+				$this->decisions->{$i}->case_number = $opinion->case_number;
+				$this->decisions->{$i}->citation = $opinion->citation;
+				$this->decisions->{$i}->date = date('Y-m-d', strtotime($opinion->date_filed));
+				$this->decisions->{$i}->url = 'https://www.courtlistener.com' . $opinion->absolute_url;
+				$this->decisions->{$i}->abstract = ' . . . ' . array_shift(explode("\n", wordwrap(html_entity_decode(strip_tags($opinion->snippet)), 100))) . ' . . . ';
+			
+				if ($opinion->court == 'Court of Appeals of Virginia')
+				{
+					$this->decisions->{$i}->court_html = '<abbr title="Court of Appeals">COA</abbr>';
+				}
+				elseif ($opinion->court == 'Supreme Court of Virginia')
+				{
+					$this->decisions->{$i}->court_html = '<abbr title="Supreme Court of Virginia">SCV</abbr>';
+				}
+				else
+				{
+					$this->decisions->{$i}->court_html = $opinion->court;
+				}
+				
+				$i++;
+			
 			}
-
-			// Port the fields that we need from $opinion to $this->decisions.
-			$this->decisions->{$i}->name = ' . . . ' . array_shift(explode("\n", wordwrap(html_entity_decode(strip_tags($opinion->case_name)), 100))) . ' . . . ';
-			$this->decisions->{$i}->case_number = $opinion->case_number;
-			$this->decisions->{$i}->citation = $opinion->citation;
-			$this->decisions->{$i}->date = date('Y-m-d', strtotime($opinion->date_filed));
-			$this->decisions->{$i}->url = 'https://www.courtlistener.com' . $opinion->absolute_url;
-			$this->decisions->{$i}->abstract = ' . . . ' . array_shift(explode("\n", wordwrap(html_entity_decode(strip_tags($opinion->snippet)), 100))) . ' . . . ';
-
-			if ($opinion->court == 'Court of Appeals of Virginia')
-			{
-				$this->decisions->{$i}->court_html = '<abbr title="Court of Appeals">COA</abbr>';
-			}
-			elseif ($opinion->court == 'Supreme Court of Virginia')
-			{
-				$this->decisions->{$i}->court_html = '<abbr title="Supreme Court of Virginia">SCV</abbr>';
-			}
-			else
-			{
-				$this->decisions->{$i}->court_html = $opinion->court;
-			}
-
-			$i++;
-
+		
 		}
-
+		
 		// Store these decisions in the metadata table.
 		$law = new Law();
 		$law->section_id = $this->section_id;
 		$law->metadata->{0}->key = 'court_decisions';
 		$law->metadata->{0}->value = json_encode($this->decisions);
 		$law->store_metadata();
-
+		
 		return TRUE;
-
+		
 	}*/
-
+	
 }
 
 
@@ -252,6 +269,39 @@ class Parser
 	public $db;
 	public $edition_id;
 	public $structure_labels;
+
+	/**
+	 * Indicators of dictionary terms.
+	 */
+
+	/*
+	 * The candidate phrases that indicate that the scope of one or more definitions are about
+	 * to be provided. Some phrases are left-padded with a space if they would never occur
+	 * without being preceded by a space; this is to prevent over-broad matches.
+	 */
+	public $scope_indicators = array(
+		' are used in this ',
+		'when used in this ',
+		'for purposes of this ',
+		'for the purposes of this ',
+		'for the purpose of this ',
+		'in this ',
+	);
+
+	/*
+	 * Create a list of every phrase that can be used to link a term to its defintion, e.g.,
+	 * "'People' has the same meaning as 'persons.'" When appropriate, pad these terms with
+	 * spaces, to avoid erroneously matching fragments of other terms.
+	 */
+	public $linking_phrases = array(
+		' mean ',
+		' means ',
+		' shall include ',
+		' includes ',
+		' has the same meaning as ',
+		' shall be construed ',
+		' shall also be construed to mean ',
+	);
 
 	public function __construct($options)
 	{
@@ -287,7 +337,7 @@ class Parser
 
 			while (false !== ($filename = $directory->read()))
 			{
-
+			
 				/*
 				 * We should make sure we've got an actual file that's readable.
 				 * Ignore anything that starts with a dot.
@@ -299,7 +349,7 @@ class Parser
 				{
 					$this->files[] = $filepath;
 				}
-
+				
 			}
 
 			/*
@@ -921,6 +971,7 @@ class Parser
 
 	}
 
+
 	/**
 	 * Take an object containing the normalized code data and store it.
 	 */
@@ -1216,7 +1267,7 @@ class Parser
 		/*
 		 * Get a normalized listing of definitions.
 		 */
-		$definitions = $dictionary->extract_definitions();
+		$definitions = $this->extract_definitions($this->code->text, $this->get_structure_labels());
 
 		/*
 		 * Check to see if this section or its containing structural unit were specified in the
@@ -1551,46 +1602,20 @@ class Parser
 	 * When fed a section of the code that contains definitions, extracts the definitions from that
 	 * section and returns them as an object. Requires only a block of text.
 	 */
-	function extract_definitions()
+	function extract_definitions($text, $structure_labels)
 	{
+		$scope = 'global';
 
-		if (!isset($this->text))
+		if (!isset($text))
 		{
 			return FALSE;
 		}
-
-		/*
-		 * The candidate phrases that indicate that the scope of one or more definitions are about
-		 * to be provided. Some phrases are left-padded with a space if they would never occur
-		 * without being preceded by a space; this is to prevent over-broad matches.
-		 */
-		$scope_indicators = array(	' are used in this ',
-									'when used in this ',
-									'for purposes of this ',
-									'for the purposes of this ',
-									'for the purpose of this ',
-									'in this ',
-								);
-
-		/*
-		 * Create a list of every phrase that can be used to link a term to its defintion, e.g.,
-		 * "'People' has the same meaning as 'persons.'" When appropriate, pad these terms with
-		 * spaces, to avoid erroneously matching fragments of other terms.
-		 */
-		$linking_phrases = array(	' mean ',
-									' means ',
-									' shall include ',
-									' includes ',
-									' has the same meaning as ',
-									' shall be construed ',
-									' shall also be construed to mean ',
-								);
 
 		/* Measure whether there are more straight quotes or directional quotes in this passage
 		 * of text, to determine which type are used in these definitions. We double the count of
 		 * directional quotes since we're only counting one of the two directions.
 		 */
-		if ( substr_count($this->text, '"') > (substr_count($this->text, '”') * 2) )
+		if ( substr_count($text, '"') > (substr_count($text, '”') * 2) )
 		{
 			$quote_type = 'straight';
 			$quote_sample = '"';
@@ -1607,12 +1632,12 @@ class Parser
 		 */
 		if (strpos($this->text, '<p>') !== FALSE)
 		{
-			$paragraphs = explode('<p>', $this->text);
+			$paragraphs = explode('<p>', $text);
 		}
 		else
 		{
-			$this->text = str_replace("\n", "\r", $this->text);
-			$paragraphs = explode("\r", $this->text);
+			$this->text = str_replace("\n", "\r", $text);
+			$paragraphs = explode("\r", $text);
 		}
 
 		/*
@@ -1648,7 +1673,6 @@ class Parser
 				 * one, which we'll use to narrow the scope of our search for the use of structural
 				 * labels within the text.
 				 */
-				$structure_labels = $this->structure_labels;
 
 				usort($structure_labels, 'sort_by_length');
 				$longest_label = strlen(current($structure_labels));
@@ -1656,7 +1680,7 @@ class Parser
 				/*
 				 * Iterate through every scope indicator.
 				 */
-				foreach ($scope_indicators as $scope_indicator)
+				foreach ($this->scope_indicators as $scope_indicator)
 				{
 
 					/*
@@ -1733,7 +1757,7 @@ class Parser
 				 * We need to find the right one that will allow us to connect a term to its
 				 * definition.
 				 */
-				foreach ($linking_phrases as $linking_phrase)
+				foreach ($this->linking_phrases as $linking_phrase)
 				{
 
 					if (strpos($paragraph, $linking_phrase) !== FALSE)

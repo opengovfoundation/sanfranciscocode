@@ -237,11 +237,28 @@ $sidebar = '';
  */
 if (defined('DISQUS_SHORTNAME') === TRUE)
 {
-	$body .= "
-	<section id=\"comments\">
+	$body .= "<section id=\"comments\">
 		<h2>Comments</h2>
 		<div id=\"disqus_thread\"></div>
-		<script>
+	</section>";
+
+	// Add GA tracking to Disqus.
+	if(defined('GOOGLE_ANALYTICS_ID'))
+	{
+		$content->append('javascript', "
+			var disqus_config = function() {
+		        this.callbacks.onNewComment.push(function() {
+		            ga('send', {
+		                'hitType': 'event',            // Required.
+		                'eventCategory': 'Comments',   // Required.
+		                'eventAction': 'New Comment',  // Required.
+		                'eventLabel': '".$law->section_number."'
+		            });
+		        });
+		    };");
+	}
+
+	$content->append('javascript', "
 			var disqus_shortname = '" . DISQUS_SHORTNAME . "'; // required: replace example with your forum shortname
 
 			/* * * DON'T EDIT BELOW THIS LINE * * */
@@ -249,9 +266,7 @@ if (defined('DISQUS_SHORTNAME') === TRUE)
 				var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
 				dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
 				(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-			})();
-		</script>
-	</section>";
+			})();");
 }
 
 /*
@@ -324,12 +339,12 @@ if ( isset($law->court_decisions) && ($law->court_decisions != FALSE) )
 	}
 
 	$sidebar .= '</ul>
-	
+
 				<p><small>Court opinions are provided by <a
 				href="http://www.courtlistener.com/">CourtListener</a>, which is
 				developed by the <a href="http://freelawproject.org/">Free Law
 				Project</a>.</small></p>
-				
+
 			</section>';
 
 }

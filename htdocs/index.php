@@ -19,7 +19,7 @@
  */
 if (!isset($_SERVER['HTTP_MOD_ENV']))
 {
-	die('The State Decoded cannot run without Apache’s mod_env installed.');
+	die('The State Decoded cannot run without Apache\'s mod_env installed.');
 }
 
 /*
@@ -144,8 +144,6 @@ if ( (include INCLUDE_PATH . '/config.inc.php') === FALSE )
  * Include the functions that drive the site.
  */
 require('functions.inc.php');
-
-define('APC_RUNNING', FALSE);
 
 /*
  * Connect to the database.

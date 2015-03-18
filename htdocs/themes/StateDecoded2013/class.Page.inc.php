@@ -26,7 +26,7 @@ class StateDecoded2013__Page extends Page
 		'main_css' => array(
 			'path' => '/css/application.css',
 			'type' => 'css',
-			'requires' => array('font_awesome_css')
+			'requires' => array('font_awesome_css', 'datatables_css')
 		),
 		'jquery_ui_css' => array(
 			'path' => '//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css',
@@ -78,10 +78,20 @@ class StateDecoded2013__Page extends Page
 			'path' => '/js/vendor/masonry.pkgd.min.js',
 			'type' => 'javascript'
 		),
+		'datatables' => array(
+			'path' => '//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js',
+			'type' => 'javascript',
+			'requires' => array('jquery')
+		),
+		'datatables_css' => array(
+			'path' => '//cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css',
+			'type' => 'css',
+			'requires' => array('datatables')
+		),
 		'main_js' => array(
 			'path' => '/js/vendor/functions.js',
 			'type' => 'javascript',
-			'requires' => array('jquery', 'jquery_zclip', 'mousetrap', 'jquery_qtip')
+			'requires' => array('jquery', 'jquery_zclip', 'mousetrap', 'jquery_qtip', 'datatables')
 		)
 	);
 
@@ -123,15 +133,14 @@ class StateDecoded2013__Page extends Page
 		if (defined('GOOGLE_ANALYTICS_ID'))
 		{
 
-			$content->append('javascript',
-				  "var _gaq = _gaq || [];
-				  _gaq.push(['_setAccount', '" . GOOGLE_ANALYTICS_ID . "']);
-				  _gaq.push(['_trackPageview']);
-				  (function() {
-					var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-					ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-					var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-				  })();");
+			$content->prepend('javascript',
+				"(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+				(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+				m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+				})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+				ga('create', '" . GOOGLE_ANALYTICS_ID . "', 'auto');
+				ga('send', 'pageview');");
 
 		}
 
