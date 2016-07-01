@@ -26,6 +26,9 @@
 	<![endif]-->
   <div id="container"><!-- Hack for footer lock -->
 	<header id="page_header">
+		<div class="banner">
+			This site is out of date and no longer maintained. Please refer to official sources for the up to date legal code.
+		</div>
 		<div class="nest">
 			<a href="{{home_site_url}}" class="noprint">
 				<hgroup id="place_logo">

@@ -28,6 +28,11 @@ class SanFranciscoCode2013__Page extends Page
 			'type' => 'css',
 			'requires' => array('font_awesome_css', 'datatables_css')
 		),
+		'banner_css' => array(
+			'path' => '/css/banner.css',
+			'type' => 'css',
+			'requires' => array('main_css')
+		),
 		'jquery_ui_css' => array(
 			'path' => '//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css',
 			'type' => 'css',
