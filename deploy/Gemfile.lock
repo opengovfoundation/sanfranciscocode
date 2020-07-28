@@ -20,7 +20,7 @@ GEM
     capistrano_colors (0.5.5)
     gdata_19 (1.1.5)
     highline (1.6.19)
-    json (1.8.0)
+    json (2.3.1)
     net-scp (1.1.2)
       net-ssh (>= 2.6.5)
     net-sftp (2.1.2)
